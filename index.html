@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://da08ctfrofx1b.cloudfront.net; font-src 'self'; connect-src 'self' https://api.revenuecat.com https://e.revenue.cat https://js.stripe.com; worker-src 'self' blob:; frame-src https://js.stripe.com; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>LocalResume — Private Resume Builder</title>
+  <meta name="description" content="Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="canonical" href="https://localresumeapp.com/">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="assets/manifest.webmanifest">
+  <!-- Open Graph / social share -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LocalResume">
+  <meta property="og:url" content="https://localresumeapp.com/">
+  <meta property="og:title" content="LocalResume — Build a private, ATS-friendly résumé">
+  <meta property="og:description" content="Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <meta property="og:image" content="https://localresumeapp.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="LocalResume — 100% private, on your device">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LocalResume — Build a private, ATS-friendly résumé">
+  <meta name="twitter:description" content="Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <meta name="twitter:image" content="https://localresumeapp.com/assets/og-image.png">
+  <!-- Sets data-theme on <html> before styles paint, so there's no flash of the
+       wrong theme. CSP-safe (same-origin 'self', no inline script). -->
+  <script src="theme.js?v=d9ec043d0e"></script>
+  <link rel="stylesheet" href="styles.css?v=d9ec043d0e">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LocalResume","url":"https://localresumeapp.com/","description":"Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device — no account, no subscriptions.","applicationCategory":"BusinessApplication","operatingSystem":"Web browser","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs entirely in the browser — no account, no upload.","publisher":{"@type":"Organization","name":"LocalResume"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#appMain">Skip to content</a>
+  <div class="app-shell">
+    <!-- ── Left sidebar: brand, primary nav, privacy card ── -->
+    <aside class="sidebar" aria-label="Primary">
+      <div class="logo" id="logo" role="button" tabindex="0" aria-label="Scroll to top">
+        <img src="assets/brand-icon-512.png" alt="LocalResume logo" class="brand-logo" width="30" height="30">
+        <b>Local<span class="wordmark-accent">Resume</span></b>
+      </div>
+
+      <nav class="side-nav" aria-label="Sections">
+        <a class="nav-item" id="navEditor" href="#/editor">
+          <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          <span>Editor</span>
+        </a>
+        <a class="nav-item" id="navScore" href="#/score">
+          <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></span>
+          <span>Resume Score</span>
+        </a>
+        <a class="nav-item" id="navMatch" href="#/match">
+          <span class="nav-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+          <span>Job Match</span>
+        </a>
+      </nav>
+
+      <!-- Quiet, honest front door to the existing one-time Pro offer.
+           Hidden by default; app.js reveals it only when Billing.isPro() is
+           false, and hides it again on any Pro-status change (purchase/restore).
+           The button calls the app's existing showProModal() opener. -->
+      <button type="button" class="unlock-pro-card hidden" id="unlockProCard"
+              aria-label="Unlock LocalResume Pro — $12.99 one-time">
+        <span class="unlock-pro-head">
+          <svg class="unlock-pro-glyph" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8l-1.6 10.5a1 1 0 0 1-1 .85H5.6a1 1 0 0 1-1-.85L3 8z"/></svg>
+          <span class="unlock-pro-title">Unlock Pro</span>
+        </span>
+        <span class="unlock-pro-benefit">Word (.docx) export, the cover-letter builder, tailor-to-job hints + unlimited saved versions</span>
+        <span class="unlock-pro-price">$12.99 · one-time</span>
+      </button>
+
+      <div class="privacy-card">
+        <div class="privacy-card-head">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>100% Private</span>
+        </div>
+        <p>Your career history never leaves your device. Always.</p>
+      </div>
+    </aside>
+
+    <!-- ── Main area: slim topbar + routed views ── -->
+    <div class="main-area">
+      <div class="topbar">
+        <div class="topbar-title" id="routeTitle">Editor</div>
+        <div class="topbar-right">
+          <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch theme">
+            <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor is the live mount point for buildEditor(); the router shows/hides
+           the route sections and relocates the Score/Match panels into their views. -->
+      <main class="route-wrap" id="appMain" tabindex="-1">
+        <section id="route-editor" class="route" tabindex="-1">
+          <div id="editor" class="editor"></div>
+        </section>
+        <section id="route-score" class="route" tabindex="-1" hidden>
+          <div class="route-head">
+            <h2 class="route-h">Resume Score</h2>
+            <p class="route-sub">A quick on-device check against common recruiter and ATS expectations. Updates live as you edit — nothing leaves your device.</p>
+          </div>
+          <div id="scoreHost" class="route-body"></div>
+        </section>
+        <section id="route-match" class="route" tabindex="-1" hidden>
+          <div class="route-head">
+            <h2 class="route-h">Job Match</h2>
+            <p class="route-sub">Paste a job description and compare its key terms against your whole resume — all on this device.</p>
+          </div>
+          <div id="matchHost" class="route-body"></div>
+        </section>
+      </main>
+
+      <footer>
+    LocalResume — a private resume builder that runs on your device. Your data stays with you.<br>
+    An Eden Apps app · <a href="https://edenapps.app" target="_blank" rel="noopener">edenapps.app</a><br>
+    Built with <a href="https://pdf-lib.js.org" target="_blank" rel="noopener">pdf-lib</a>, bundled locally.<br>
+    <a href="privacy.html">Privacy</a> · <a href="https://edenapps.app/terms.html" target="_blank" rel="noopener">Terms</a> · <a href="support.html">Help</a><br>
+    <button type="button" id="footerRestoreLink" class="restore-link" style="margin-top: 8px;">Already bought Pro? Restore with a code</button>
+    <button type="button" id="footerLicenseLink" class="restore-link hidden">View your Pro license card</button>
+    <a id="footerRefundLink" class="restore-link hidden" href="#">Need a refund? Email us</a>
+    <div class="backup-row">
+      <button type="button" id="footerBackupLink" class="restore-link">Back up your data</button>
+      <button type="button" id="footerRestoreBackupLink" class="restore-link">Restore from backup</button>
+      <input type="file" id="vaultFileInput" accept=".json,application/json" class="hidden">
+    </div>
+  </footer>
+    </div>
+  </div>
+
+  <!-- pdf-lib is lazy-loaded on first PDF export (see ensurePdfLib in app.js) -->
+  <script src="lib/jszip.min.js"></script>
+  <script src="billing.js?v=d9ec043d0e"></script>
+  <script src="app.js?v=d9ec043d0e"></script>
+</body>
+</html>

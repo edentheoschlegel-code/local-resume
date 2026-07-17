@@ -1,0 +1,1700 @@
+/* ── LocalResume — private, in-browser resume builder ──────────────── */
+:root {
+  --brand: #047857;
+  --brand-dark: #065f46;
+  --brand-light: #34d399;
+  --brand-soft: #ecfdf5;
+  --brand-border: #a7f3d0;
+  --ink: #1a1a2e;
+  --muted: #6b7280;
+  --line: #e7e8ee;
+  --bg: #f7f7fb;
+  --card: #ffffff;
+  --ok: #0f766e;
+  --danger: #b91c1c;
+  --shadow: 0 1px 3px rgba(20,20,40,.06), 0 8px 24px rgba(20,20,40,.05);
+  --shadow-lg: 0 20px 60px rgba(20,20,40,.14);
+
+  /* Elevation v1 — a soft, layered shadow ladder shared across the four
+     sibling apps. sm for barely-raised chips, md for cards/panels, lg for
+     modals & the floating resume paper. Low-opacity, cool-neutral tint. */
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  --shadow-md: 0 2px 4px rgba(16,24,40,.05), 0 6px 16px rgba(16,24,40,.08);
+
+  /* Surface tokens that used to be hardcoded literals inline; pulled into
+     :root so the dark theme can override them without touching light. Light
+     values are identical to the originals — light mode is unchanged. */
+  --topbar-bg: rgba(255,255,255,.85);
+  --input-bg: #fbfbfd;
+  --input-bg-focus: #ffffff;
+  --pill-bg: #f0fdf9;
+  --pill-border: #99f6e4;
+  --ok-soft: #ecfdf5;         /* status-msg.ok / jd good bg */
+  --danger-soft: #fef2f2;     /* status-msg.err / jd low bg */
+  --rm-hover-bg: #fee2e2;
+  --warn-ink: #b45309;        /* jd mid / missing chip text */
+  --warn-soft: #fffbeb;       /* jd mid / missing chip bg */
+  --warn-border: #fde68a;
+  --low-border: #fecaca;      /* jd low border */
+  --body-ink-2: #333333;      /* resume body copy, pro features */
+  --footer-ink: #9ca3bf;
+  --backdrop: rgba(20,20,40,.45);
+
+  /* Score ring + category bars: visible track in both themes. */
+  --ring-track: #e3e5ec;
+  /* Info tint (Medium-impact tag) — blue so it never reads as pass/fail. */
+  --info-ink: #1d4ed8;
+  --info-soft: #eff6ff;
+  --info-border: #bfdbfe;
+
+  /* ── One "needs work" signal hue, shared everywhere ────────────────────
+     --warn-ink stays the AA-legible text amber (on tinted fills). --warn-fill
+     is the SAME amber family tuned for large non-text fills (progress bars,
+     ring strokes) so a mid score reads as one recognizable amber in both
+     themes — not rust in light and yellow in dark. Derived from one base. */
+  --warn-fill: #d97706;         /* amber-600: bars / ring strokes (light) */
+
+  /* ── Sidebar / nav / route surfaces (on the shipped #047857 ramp) ── */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e7e8ee;
+  --nav-ink: #4b5563;              /* resting nav label */
+  --nav-hover-bg: #f3f5f4;
+  --nav-active-bg: #ecfdf5;        /* brand-soft */
+  --nav-active-ink: #065f46;       /* brand-dark */
+  --nav-active-border: #a7f3d0;    /* brand-border */
+  --privacy-card-bg: #f0fdf9;
+  --privacy-card-border: #99f6e4;
+  --ghost-line: #e9ebf0;           /* skeleton placeholder line */
+  --focus-ring: #047857;           /* focus-visible ring on brand */
+
+  /* Sidebar Unlock-Pro card (on the brand ramp; both themes below). */
+  --unlock-pro-bg: #f0fdf9;
+  --unlock-pro-border: #c7efe0;
+  --unlock-pro-glyph: #047857;
+  --unlock-pro-title: #065f46;
+
+  /* Start-from-an-example panel (on the brand ramp). */
+  --starter-bg: #f0fdf9;
+  --starter-border: #c7efe0;
+  --starter-ink: #065f46;
+
+  /* Inline bullet coaching hints (Action-Verb Coach = amber; Quantify = blue).
+     Reuse the existing warn/info ramps so both themes + AA are already covered. */
+  --hint-verb-ink: #b45309;      /* == --warn-ink light */
+  --hint-verb-soft: #fffbeb;     /* == --warn-soft light */
+  --hint-verb-border: #fde68a;   /* == --warn-border light */
+  --hint-metric-ink: #1d4ed8;    /* == --info-ink light */
+  --hint-metric-soft: #eff6ff;   /* == --info-soft light */
+  --hint-metric-border: #bfdbfe; /* == --info-border light */
+
+  /* ── Elevation v1 — family polish (shared with Snowball & siblings) ──
+     Ambient page + hero washes, a raised-surface tint and a brand-tinted
+     icon-chip fill. Kept low-saturation so the green never shouts. Dark
+     values below re-tune each so both themes read cohesive + AA-clean. */
+  --page-wash-a: #f2faf6;        /* very soft green top-left of the page field */
+  --page-wash-b: #f7f7fb;        /* == --bg, so the wash melts into the base */
+  --hero-wash: rgba(4,120,87,.06);   /* brand tint behind the topbar/hero band */
+  --surface-tint: #fbfdfc;       /* faint cool-green lift for raised cards vs --bg */
+  --chip-grad-a: #ecfdf5;        /* icon-chip gradient (brand-soft ramp) */
+  --chip-grad-b: #d6f5e6;
+  --chip-ink: #047857;           /* glyph colour on the tinted chip */
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────
+   Opt-in overlay applied via data-theme="dark" on <html>. Chrome goes to a
+   warm near-black; the resume PREVIEW ("paper") is deliberately kept light
+   below so the printed document always previews as it prints. */
+[data-theme="dark"] {
+  --brand: #34d399;           /* lightened so it stays vivid + AA on dark chrome */
+  --brand-dark: #6ee7b7;      /* used as a light accent/heading colour on dark */
+  --brand-light: #34d399;
+  --brand-soft: #10231c;      /* deep green tint for brand-soft fills */
+  --brand-border: #1f5741;
+  --ink: #e8e8ed;
+  --muted: #a1a1b0;
+  --line: #2a2c34;
+  --bg: #15161a;
+  --card: #1c1d22;
+  --ok: #5eead4;
+  --danger: #f87171;
+  --shadow: 0 1px 3px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,.55);
+
+  /* Elevation v1 (dark) — deeper/cooler so raised surfaces still read against
+     the near-black chrome; higher opacity than the light rungs. */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.5), 0 6px 16px rgba(0,0,0,.45);
+
+  --topbar-bg: rgba(24,25,30,.85);
+  --input-bg: #212228;
+  --input-bg-focus: #26272e;
+  --pill-bg: #0f2620;
+  --pill-border: #1f5741;
+  --ok-soft: #10231c;
+  --danger-soft: #2a1416;
+  --rm-hover-bg: #3a1a1c;
+  --warn-ink: #fbbf24;
+  /* Deliberate amber caution surface in dark: a tinted amber wash + defined
+     border derived from the amber base (was a muddy near-black brown that read
+     as a rendering glitch behind the inline hint / warn rows). */
+  --warn-soft: rgba(245,158,11,.12);
+  --warn-border: rgba(245,158,11,.35);
+  --low-border: #5a2a2a;
+  --body-ink-2: #d3d3dc;
+  --footer-ink: #8b8c9c;
+  --backdrop: rgba(0,0,0,.62);
+
+  --ring-track: #34363f;
+  --info-ink: #93c5fd;
+  --info-soft: #182236;
+  --info-border: #2c4a77;
+  /* Same amber signal, dark variant — same family as the light --warn-fill so a
+     mid score is one recognizable amber across themes (not rust→yellow). */
+  --warn-fill: #fbbf24;
+
+  /* Sidebar / nav / route surfaces (dark). Sidebar is lifted a step above the
+     content column (--bg #15161a) so the dark theme gets the same surface
+     separation the light theme has. */
+  --sidebar-bg: #1c1e24;
+  --sidebar-border: #2e3038;
+  --nav-ink: #b5b6c2;
+  --nav-hover-bg: #232429;
+  --nav-active-bg: #10231c;        /* deep green tint */
+  --nav-active-ink: #6ee7b7;
+  --nav-active-border: #1f5741;
+  --privacy-card-bg: #0f2620;
+  --privacy-card-border: #1f5741;
+  --ghost-line: #2a2c34;
+  --focus-ring: #6ee7b7;           /* lighter ring for AA on dark chrome */
+
+  /* Sidebar Unlock-Pro card (dark) */
+  --unlock-pro-bg: #10231c;
+  --unlock-pro-border: #1f5741;
+  --unlock-pro-glyph: #34d399;
+  --unlock-pro-title: #6ee7b7;
+
+  /* Start-from-an-example panel (dark) */
+  --starter-bg: #10231c;
+  --starter-border: #1f5741;
+  --starter-ink: #6ee7b7;
+
+  /* Inline bullet coaching hints (dark) — mirror the warn/info dark ramps.
+     The amber hint now uses the deliberate caution surface (tinted amber wash +
+     defined amber border) so it reads as a caution chip, not a muddy glitch. */
+  --hint-verb-ink: #fbbf24;
+  --hint-verb-soft: rgba(245,158,11,.12);
+  --hint-verb-border: rgba(245,158,11,.35);
+  --hint-metric-ink: #93c5fd;
+  --hint-metric-soft: #182236;
+  --hint-metric-border: #2c4a77;
+
+  /* Elevation v1 — family polish (dark). Washes go near-black with a whisper
+     of green; the icon-chip keeps a deep-green gradient so glyphs stay vivid. */
+  --page-wash-a: #16211d;        /* faint green lift at the top of the field */
+  --page-wash-b: #15161a;        /* == --bg (dark) */
+  --hero-wash: rgba(52,211,153,.08);
+  --surface-tint: #1f2126;       /* raised card lift above the dark --bg */
+  --chip-grad-a: #123026;
+  --chip-grad-b: #0d241c;
+  --chip-ink: #6ee7b7;
+}
+/* Subtle theme transition; suppressed under reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html { transition: background-color .2s ease, color .2s ease; }
+  body, .topbar, .panel, .modal, .field input, .field textarea { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  /* Ambient page wash: a very soft brand-tinted glow settling from the top-left
+     into the flat base, so the whole app reads as one elevated field rather than
+     a flat grey. Fixed so it doesn't scroll away on long editor pages. */
+  background: var(--bg);
+  background-image:
+    radial-gradient(1200px 620px at 8% -8%, var(--page-wash-a), transparent 60%),
+    linear-gradient(var(--page-wash-b), var(--page-wash-b));
+  background-attachment: fixed;
+  font-size: 15px;
+  line-height: 1.5;
+}
+a { color: var(--brand); text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; font-size: 14px; }
+.hidden { display: none !important; }
+/* Elevation v1 — tabular figures so columns of digits (scores, counts, dates,
+   prices) line up. Applied via this utility and on the numeric selectors below. */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+/* ── Top bar ───────────────────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px max(28px, env(safe-area-inset-right)) 14px max(28px, env(safe-area-inset-left));
+  padding-top: max(14px, env(safe-area-inset-top));
+  /* Soft brand-tinted hero wash sits under the translucent bar, so the top of
+     the app reads as an intentional header band rather than a bare edge. */
+  background:
+    linear-gradient(180deg, var(--hero-wash), transparent),
+    var(--topbar-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(12px); backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.logo svg { width: 30px; height: 30px; }
+/* Brand mark: full-colour squircle tile, so it reads correctly in both themes. */
+.brand-logo { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0; display: block; }
+.logo b { font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
+/* Two-tone wordmark: "Local" stays ink, "Resume" takes the brand accent.
+   Uses the existing --brand token, which the dark theme already lightens for
+   contrast on the dark topbar. */
+.logo b .wordmark-accent { color: var(--brand); }
+/* Right cluster: privacy pill + theme toggle live together on the right. */
+.topbar-right { display: flex; align-items: center; gap: 10px; margin-right: -10px; }
+@media (max-width: 480px) { .topbar-right { gap: 6px; margin-right: 0; } }
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex: none;
+  background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  color: var(--muted);
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.theme-toggle:hover { color: var(--brand); border-color: var(--brand-border); background: var(--brand-soft); }
+.theme-toggle svg { width: 18px; height: 18px; }
+/* Icon reflects the CURRENT mode: sun in light mode, moon in dark mode. */
+.theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+
+/* ── App shell: left sidebar + main area ───────────────────────────── */
+.skip-link {
+  position: absolute; left: 8px; top: -48px; z-index: 60;
+  background: var(--card); color: var(--brand); font-weight: 700; font-size: 13px;
+  padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--brand-border);
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 8px; }
+
+.app-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100%; align-items: stretch; }
+.main-area { display: flex; flex-direction: column; min-width: 0; }
+
+.sidebar {
+  display: flex; flex-direction: column; gap: 22px;
+  background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border);
+  padding: max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+}
+.sidebar .logo { padding: 4px 6px; }
+
+.side-nav { display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; min-height: 44px; border-radius: 12px;
+  font-weight: 700; font-size: 14px; color: var(--nav-ink);
+  border: 1px solid transparent;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.nav-item:hover { background: var(--nav-hover-bg); color: var(--ink); }
+.nav-item.active {
+  background: var(--nav-active-bg); color: var(--nav-active-ink);
+  border-color: var(--nav-active-border); box-shadow: var(--shadow-sm);
+}
+/* Refined active affordance: a short rounded brand bar on the leading edge, so
+   the current section reads at a glance beyond the tint. Decorative only. */
+.nav-item.active::before {
+  content: ""; position: absolute; left: 3px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 999px; background: var(--brand);
+}
+/* Shared "selected = check badge" language with the template picker: the active
+   nav row gets the same small filled brand check, trailing the label. Decorative
+   (aria-current already carries the state), so aria-hidden by construction. */
+.nav-item.active::after {
+  content: ""; margin-left: auto; flex: none;
+  width: 18px; height: 18px; border-radius: 999px;
+  background:
+    var(--brand)
+    center / 11px 11px no-repeat
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg>");
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"] .nav-item.active::after {
+  background:
+    var(--brand)
+    center / 11px 11px no-repeat
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2315161a' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg>");
+}
+.nav-ic { display: flex; flex: none; }
+.nav-ic svg { width: 19px; height: 19px; }
+/* The active icon picks up the brand tint so it reads as "on", not just tinted bg. */
+.nav-item.active .nav-ic { color: var(--brand); }
+
+.privacy-card {
+  margin-top: auto;
+  background: var(--privacy-card-bg); border: 1px solid var(--privacy-card-border);
+  border-radius: 14px; padding: 14px;
+}
+.privacy-card-head { display: flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+.privacy-card-head svg { width: 15px; height: 15px; }
+.privacy-card p { margin-top: 8px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+/* ── Sidebar "Unlock Pro" front door ─────────────────────────────────────
+   A quiet card that opens the existing one-time paywall. Reuses the --brand
+   ramp; its own soft/border tokens carry both light + dark values below. */
+.unlock-pro-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  width: 100%; text-align: left; min-height: 44px;
+  background: var(--unlock-pro-bg); border: 1px solid var(--unlock-pro-border);
+  border-radius: 14px; padding: 13px 14px; cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.unlock-pro-card:hover { border-color: var(--brand-border); box-shadow: var(--shadow-md); }
+@media (prefers-reduced-motion: no-preference) {
+  .unlock-pro-card:hover { transform: translateY(-1px); }
+}
+.unlock-pro-card:active { transform: translateY(1px); }
+.unlock-pro-head { display: flex; align-items: center; gap: 9px; }
+/* Filled brand glyph chip — a rounded-square gradient tile with the crown mark,
+   so the Pro front door reads as a confident, premium affordance (family style). */
+.unlock-pro-glyph {
+  box-sizing: content-box; width: 15px; height: 15px; flex: none; padding: 5px;
+  border-radius: 8px; color: #fff;
+  background: linear-gradient(150deg, var(--brand-light), var(--brand));
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"] .unlock-pro-glyph { color: var(--bg); }
+.unlock-pro-title { font-weight: 800; font-size: 13px; color: var(--unlock-pro-title); letter-spacing: .1px; }
+.unlock-pro-benefit { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.unlock-pro-price { font-size: 11.5px; font-weight: 700; color: var(--brand); letter-spacing: .2px; }
+.unlock-pro-card:focus-visible { outline: 2.5px solid var(--focus-ring); outline-offset: 2px; }
+/* On phone the Pro front door becomes a full-width banner directly under the nav
+   row (order 4 — matching the rest of the app family) so the one-time offer stays
+   visible on mobile. It used to be display:none here, which left phone users with
+   no discoverable Pro offer. */
+@media (max-width: 820px) {
+  .unlock-pro-card {
+    order: 4; width: 100%;
+    flex-direction: row; align-items: center; flex-wrap: wrap; gap: 4px 12px;
+    padding: 12px 14px;
+  }
+  .unlock-pro-card .unlock-pro-head { flex: 0 0 auto; }
+  .unlock-pro-card .unlock-pro-price { margin-left: auto; font-size: 12.5px; }
+  .unlock-pro-card .unlock-pro-benefit { flex: 1 1 100%; order: 3; }
+}
+
+/* Slim topbar title (replaces the old hero). */
+.topbar-title { font-size: 17px; font-weight: 800; letter-spacing: -.3px; color: var(--ink); flex: 0 0 auto; }
+
+/* ── Routed views ──────────────────────────────────────────────────── */
+.route-wrap { flex: 1 1 auto; min-width: 0; }
+.route { outline: none; }
+.route[hidden] { display: none; }
+.route-head {
+  position: relative; max-width: 1120px; margin: 0 auto; padding: 26px 24px 6px;
+  isolation: isolate; /* own stacking context so the hero glow below always paints */
+}
+/* Soft brand-tinted hero glow behind the Score/Match page titles — a whisper of
+   the family hero wash, so BOTH routed views feel elevated like the editor top.
+   z-index:0 inside the head's own stacking context keeps it reliably visible
+   (the old z-index:-1 could slip behind the page and vanish on some routes). */
+.route-head::before {
+  content: ""; position: absolute; inset: -22px 0 auto 0; height: 190px;
+  background: radial-gradient(680px 190px at 8% 0%, var(--hero-wash), transparent 72%);
+  pointer-events: none; z-index: 0;
+}
+.route-head > * { position: relative; z-index: 1; }
+/* On phone the head spans nearly the full viewport, so the glow's negative
+   horizontal insets (-60px left, -24px right, from the desktop centred layout)
+   would bleed past the viewport edge and force a ~24px horizontal scroll. Pin
+   the glow flush to the head's own box on narrow screens — the soft radial edge
+   is already near-transparent there, so the look is unchanged. Desktop keeps the
+   bleed (the centred max-width leaves ample off-screen room). */
+@media (max-width: 640px) {
+  .route-head::before { inset: -22px 0 auto 0; }
+}
+.route-h { font-size: 24px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 6px; }
+.route-sub { color: var(--muted); font-size: 14px; max-width: 640px; line-height: 1.5; }
+.route-body { max-width: 1120px; margin: 0 auto; padding: 14px 24px 24px; }
+/* On their own views the Score/Match panels stretch full-width (no editor grid). */
+#scoreHost .panel, #matchHost .panel { margin-bottom: 0; }
+
+@media (max-width: 820px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center;
+    gap: 10px 14px; border-right: none; border-bottom: 1px solid var(--sidebar-border);
+    /* On phone the sidebar becomes the top strip, so it must clear the status
+       bar / Dynamic Island itself. This shorthand would otherwise wipe the base
+       rule's safe-area padding-top, so re-apply the inset here. */
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  }
+  .sidebar .logo { padding: 0; margin-right: auto; }
+  .side-nav { flex-direction: row; flex-wrap: wrap; gap: 6px; order: 3; width: 100%; }
+  .nav-item { flex: 1 1 auto; justify-content: center; }
+  .nav-item.active::before,
+  .nav-item.active::after { display: none; } /* leading bar + trailing check read oddly in the centred row */
+  /* The strip above already carries the status-bar inset, so on phones let the
+     route-title bar flow normally: drop the sticky + its second safe-area inset,
+     removing the redundant top gap while keeping nothing over the status bar
+     when scrolled (a static bar just scrolls away with the content). */
+  .topbar { position: static; padding-top: 14px; }
+  .privacy-card { display: none; } /* the topbar pill still carries the promise */
+}
+
+/* Visible focus rings on nav + interactive controls (both themes). */
+.nav-item:focus-visible,
+.skip-link:focus-visible,
+.theme-toggle:focus-visible,
+.logo:focus-visible {
+  outline: 2.5px solid var(--focus-ring); outline-offset: 2px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.hero { text-align: center; padding: 40px 24px 20px; }
+.hero h1 { font-size: 34px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; max-width: 680px; margin: 0 auto 10px; }
+.hero .accent { color: var(--brand); }
+.hero p { color: var(--muted); font-size: 15.5px; max-width: 520px; margin: 0 auto; }
+
+.btn {
+  border: none; border-radius: 12px; padding: 11px 20px; font-weight: 700; font-size: 14.5px;
+  background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(4,120,87,.22);
+  transition: transform .1s ease, box-shadow .1s ease, background-color .15s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(4,120,87,.28); }
+.btn:active { transform: translateY(0); }
+.btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--brand-border); box-shadow: none; }
+.btn.ghost:hover { background: var(--brand-soft); }
+.btn.sm { padding: 8px 14px; font-size: 13px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+/* Dark theme lightens --brand to #34d399 (a light green), so white ink on the
+   solid primary button drops to ~1.9:1 (fails WCAG AA). Use a deep-green ink on
+   the light-green fill in dark mode — ~7.7:1. Ghost buttons keep --brand text on
+   a transparent/tinted surface, so they are unaffected. */
+[data-theme="dark"] .btn { color: #052e21; }
+[data-theme="dark"] .btn.ghost { color: var(--brand); }
+
+footer { text-align: center; color: var(--footer-ink); font-size: 12.5px; padding: 30px 24px max(40px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); margin-top: 30px; }
+footer a { color: var(--muted); }
+
+/* ── Editor ────────────────────────────────────────────────────────── */
+.editor {
+  position: relative; isolation: isolate;
+  /* Widened from 1120px to give the three-column (form | preview | coach)
+     layout room; the grid collapses back to two/one column below its
+     breakpoints, so narrower viewports are unaffected. */
+  max-width: 1360px; margin: 0 auto; padding: 10px 24px 24px;
+}
+/* Same soft brand-tinted hero glow the Score/Match heads carry, so the editor —
+   the primary surface — opens with the family hero band instead of a bare edge. */
+.editor::before {
+  /* Flush to the editor box at all widths — a -24px right / -60px left bleed
+     used to push a 24px horizontal scrollbar on desktop #/editor. The glow's
+     radial edges are transparent, so pinning it flush is visually identical. */
+  content: ""; position: absolute; inset: -14px 0 auto 0; height: 200px;
+  background: radial-gradient(720px 200px at 8% 0%, var(--hero-wash), transparent 72%);
+  pointer-events: none; z-index: 0;
+}
+.editor > * { position: relative; z-index: 1; }
+/* Same phone guard as .route-head::before: pin the editor hero glow flush to the
+   editor box so its desktop -60px/-24px bleed can't push a horizontal scrollbar
+   at narrow widths. Invisible change (the glow is transparent at its edges). */
+@media (max-width: 640px) {
+  .editor::before { inset: -14px 0 auto 0; }
+}
+/* form | preview | coach-rail. The rail joins only on wide viewports; below
+   1240px it drops to form | preview (rail stacks under the form), and below
+   900px everything is a single column. The preview keeps its own sticky scroll
+   pane in every layout. */
+.editor-grid {
+  display: grid;
+  /* Form is the working surface, so it takes the most room (matching the
+     reference triptych where the editing column is widest); the preview holds a
+     comfortable single résumé sheet; the coach rail is a slim fixed track. */
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr) minmax(236px, 272px);
+  grid-template-areas: "form preview rail";
+  gap: 24px; align-items: flex-start;
+}
+.editor-grid > :nth-child(1) { grid-area: form; min-width: 0; }
+.editor-grid > .preview-wrap { grid-area: preview; }
+.editor-grid > .coach-rail { grid-area: rail; }
+@media (max-width: 1240px) {
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-areas: "form preview" "rail rail";
+  }
+}
+@media (max-width: 900px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "form" "preview" "rail";
+  }
+}
+/* The coach rail tracks the preview: sticky on wide screens so it stays in view
+   while the form scrolls; static once it drops below the form. */
+.coach-rail { position: sticky; top: 90px; align-self: start; }
+@media (max-width: 1240px) { .coach-rail { position: static; top: auto; } }
+
+/* ── Phone pass (≤640px) ─────────────────────────────────────────────────
+   The 3-column editor grid has already collapsed to a single column by 900px
+   (form → preview → coach), so on phone each of those is full-width. These rules
+   just make the inner content comfortable at ~360–375px and belt-and-suspenders
+   the page against horizontal overflow. Scoped to mobile — desktop untouched. */
+@media (max-width: 640px) {
+  /* Belt-and-suspenders: clip any stray horizontal bleed at the shell so the
+     page can never side-scroll. `clip` (not `hidden`) creates no scroll
+     container, so vertical scrolling and the preview pane's own scroll are
+     unaffected; the editor grid is single-column here so nothing sticky relies
+     on this ancestor. */
+  .main-area { overflow-x: clip; }
+
+  /* Give the editor panels a touch more breathing room from the viewport edge
+     without widening the sheet. */
+  .editor { padding-left: 16px; padding-right: 16px; }
+  /* NB: the .field-row single-column collapse lives just after its base rule
+     below, so source order lets it win. */
+
+  /* ── Comfortable ≥44px tap targets on touch screens ──
+     Desktop keeps its tighter, mouse-friendly sizing; these only apply on phone. */
+  .field input, .field textarea { min-height: 44px; }
+  /* Textarea keeps its own taller min-height rule; re-assert it so this doesn't
+     shrink the multi-line summary field. */
+  .field textarea { min-height: 72px; }
+  .btn, .btn.sm { min-height: 44px; }
+  .theme-toggle { width: 44px; height: 44px; }
+  /* Give the small text-style links a full tap zone without changing their look. */
+  .coach-item-jump, .inline-score-link { min-height: 44px; display: inline-flex; align-items: center; }
+  /* NB: the bullet/entry remove-button tap-target bumps live just after their
+     base rules below, so source order lets them win. */
+}
+
+.panel {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 16px;
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+/* Floating cards get a tasteful lift on hover — depth without motion sickness.
+   Panels that host their own interactive controls (score/match) benefit most;
+   the lift is subtle enough to feel premium on the plain editor panels too. */
+@media (prefers-reduced-motion: no-preference) {
+  .panel:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+}
+.field-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; display: block; }
+.field { margin-bottom: 14px; }
+.field input, .field textarea {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 9px; padding: 9px 11px;
+  background: var(--input-bg); color: var(--ink); transition: border-color .12s ease;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--brand-light); background: var(--input-bg-focus); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+/* Paired contact fields (Email/Phone, Location/Website) are too tight side by
+   side on a phone — the trailing field icon crowds the value and truncates it.
+   Stack them so each field gets the full column width. Placed after the base
+   rules so source order lets it win; scoped to mobile so desktop keeps 2/3-up. */
+@media (max-width: 640px) {
+  .field-row, .field-row.three { grid-template-columns: 1fr; }
+}
+.field textarea { resize: vertical; min-height: 60px; }
+.panel h3 { font-size: 14.5px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+/* Editor section focal point: a short brand-tinted accent bar leading each panel
+   title, so the primary surface reads with rhythm + hierarchy instead of a flat
+   stack of identical white boxes. Decorative (title text already carries meaning). */
+.editor .panel > h3 { position: relative; padding-left: 14px; }
+.editor .panel > h3::before {
+  content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 4px; height: 15px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--brand-light), var(--brand));
+}
+
+/* ── Start from an example ─────────────────────────────────────────────
+   Subtle by default (just a ghost button). Prominent (tinted card + heading)
+   when the resume is empty, to kill the blank-page freeze. */
+.starter-panel.prominent {
+  background: var(--starter-bg); border: 1px solid var(--starter-border);
+  box-shadow: var(--shadow-md);
+}
+.starter-head { display: flex; align-items: center; gap: 11px; margin-bottom: 8px; }
+/* Family icon-chip: gradient rounded-square tile carrying the spark glyph. */
+.starter-ic {
+  display: flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(150deg, var(--chip-grad-a), var(--chip-grad-b));
+  color: var(--chip-ink); border: 1px solid var(--brand-border); box-shadow: var(--shadow-sm);
+}
+.starter-ic svg { width: 19px; height: 19px; }
+.starter-title { font-size: 15px; font-weight: 800; color: var(--starter-ink); }
+.starter-sub { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.45; }
+.starter-panel .btn.ghost.sm { margin: 0; }
+
+/* ── Template picker ───────────────────────────────────────────────── */
+/* Wraps to a second row when 5 options can't fit one line (esp. at 375px), so the
+   picker never overflows horizontally. Each option grows to fill its row but keeps
+   a sensible min so labels stay readable when they wrap. */
+.template-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.template-opt {
+  position: relative; flex: 1 1 auto; min-width: 88px; border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 10px; text-align: center; min-height: 44px;
+  background: var(--card); font-weight: 700; font-size: 13px; color: var(--muted);
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .12s ease;
+}
+.template-opt:hover { border-color: var(--brand-border); color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .template-opt:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+}
+.template-opt.active {
+  border-color: var(--brand); color: var(--brand-dark); background: var(--brand-soft);
+  box-shadow: var(--shadow-sm);
+}
+/* Premium "selected" affirmation: a small filled check badge on the chosen
+   template — presence, not just a colour swap. Purely decorative (aria-pressed
+   already carries the state to AT), so it's aria-hidden by construction. */
+.template-opt.active::after {
+  content: ""; position: absolute; top: -7px; right: -7px;
+  width: 20px; height: 20px; border-radius: 999px;
+  background:
+    var(--brand)
+    /* inline white check glyph as a mask-free data-URI background */
+    center / 12px 12px no-repeat
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg>");
+  box-shadow: var(--shadow-sm); border: 2px solid var(--card);
+}
+
+/* ── Repeatable entry blocks (experience / education) ─────────────── */
+.entry-block { border: 1.5px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 12px; position: relative; }
+.entry-block .entry-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.entry-block .entry-label { font-size: 12px; font-weight: 700; color: var(--brand-dark); text-transform: uppercase; letter-spacing: .3px; }
+.entry-block .rm-entry { background: none; border: none; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; padding: 3px 8px; min-height: 40px; border-radius: 6px; transition: color .15s ease, background-color .15s ease; }
+.entry-block .rm-entry:hover { background: var(--rm-hover-bg); color: var(--danger); }
+.entry-block .rm-entry svg { width: 14px; height: 14px; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.checkbox-row input { width: auto; }
+
+.bullets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.bullet-row { display: grid; grid-template-columns: 1fr 40px; gap: 6px; align-items: center; }
+.bullet-row .rm { background: none; border: none; color: var(--muted); display: flex; align-items: center; justify-content: center; border-radius: 6px; padding: 4px; min-width: 40px; min-height: 40px; transition: color .15s ease, background-color .15s ease; }
+.bullet-row .rm:hover { background: var(--rm-hover-bg); color: var(--danger); }
+.bullet-row .rm svg { width: 14px; height: 14px; }
+/* Phone tap-target bump for the row remove/add controls. Placed after the base
+   rules above so it wins on source order; scoped to mobile so desktop keeps its
+   tighter sizing. The track column widens to match the 44px button. */
+@media (max-width: 640px) {
+  .bullet-row { grid-template-columns: 1fr 44px; }
+  .bullet-row .rm { min-width: 44px; min-height: 44px; }
+  .entry-block .rm-entry { min-height: 44px; }
+}
+
+/* Inline bullet coaching (Action-Verb Coach + Quantify prompter). Advisory
+   only; sits under each bullet input. Icon + text together carry meaning so
+   colour is never the sole signal. */
+.bullet-cell { display: flex; flex-direction: column; gap: 4px; }
+.bullet-hints { display: flex; flex-direction: column; gap: 4px; }
+.bullet-hints:empty { display: none; }
+.bullet-hint {
+  display: flex; align-items: flex-start; gap: 6px;
+  font-size: 12px; line-height: 1.4; padding: 5px 9px;
+  border: 1px solid transparent; border-radius: 8px;
+}
+.bullet-hint .bullet-hint-ic { display: flex; flex: none; margin-top: 1px; }
+.bullet-hint svg { width: 13px; height: 13px; }
+.bullet-hint.verb { background: var(--hint-verb-soft); color: var(--hint-verb-ink); border-color: var(--hint-verb-border); }
+.bullet-hint.metric { background: var(--hint-metric-soft); color: var(--hint-metric-ink); border-color: var(--hint-metric-border); }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.tag { display: flex; align-items: center; gap: 6px; background: var(--brand-soft); color: var(--brand-dark); font-size: 12.5px; font-weight: 600; padding: 6px 8px 6px 12px; border-radius: 999px; border: 1px solid var(--brand-border); box-shadow: var(--shadow-sm); }
+.tag button { background: none; border: none; color: var(--brand-dark); display: flex; align-items: center; justify-content: center; opacity: .6; position: relative; transition: opacity .15s ease; }
+.tag button:hover { opacity: 1; }
+/* Enlarge the tap target to at least 40px around the small × glyph without
+   ballooning the compact chip's visual height. */
+.tag button::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; }
+.tag button svg { width: 12px; height: 12px; }
+
+.status-msg { margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+.status-msg.ok { background: var(--ok-soft); color: var(--ok); }
+.status-msg.err { background: var(--danger-soft); color: var(--danger); }
+.autosave-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+/* ── ATS job-description keyword matcher ──────────────────────────────── */
+.jd-result { margin-top: 16px; }
+.jd-result:empty { margin-top: 0; }
+.jd-score {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 18px 18px; border-radius: 16px; margin-bottom: 16px;
+  border: 1px solid var(--line); background: var(--input-bg);
+  box-shadow: var(--shadow-sm);
+}
+.jd-score-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.jd-score-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+/* --muted (#6b7280) on the tinted score-card backgrounds (danger-soft #fef2f2)
+   lands at 4.42:1, just under AA. A slightly deeper gray clears AA on all three
+   light-theme tinted cards while staying visually "muted". Dark mode keeps
+   --muted (light text on a dark card is already fine). */
+.jd-score-label { font-size: 13px; color: #565c69; font-weight: 600; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+[data-theme="dark"] .jd-score-label { color: var(--muted); }
+.jd-score.good { background: var(--ok-soft); border-color: var(--brand-border); }
+.jd-score.mid { background: var(--warn-soft); border-color: var(--warn-border); }
+.jd-score.low { background: var(--danger-soft); border-color: var(--low-border); }
+.jd-group { margin-bottom: 12px; }
+.jd-group-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 8px; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.jd-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+/* ── One-page fit indicator (FREE) ───────────────────────────────────── */
+.jd-fit {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 11px 14px; border-radius: 12px; margin-bottom: 14px;
+  border: 1.5px solid var(--line); background: var(--input-bg);
+}
+.jd-fit:empty { display: none; }
+.jd-fit-ic { display: flex; flex: none; width: 20px; height: 20px; margin-top: 1px; }
+.jd-fit-ic svg { width: 20px; height: 20px; }
+.jd-fit-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.jd-fit-title { font-size: 13.5px; font-weight: 700; }
+.jd-fit-sub { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.jd-fit.ok { background: var(--ok-soft); border-color: var(--brand-border); }
+.jd-fit.ok .jd-fit-ic { color: var(--brand); }
+.jd-fit.ok .jd-fit-title { color: var(--brand-dark); }
+.jd-fit.over { background: var(--warn-soft); border-color: var(--warn-border); }
+.jd-fit.over .jd-fit-ic { color: var(--warn-ink); }
+.jd-fit.over .jd-fit-title { color: var(--warn-ink); }
+
+/* ── Tailor to this job (PRO placement hints) ────────────────────────── */
+/* Distinct from the mint "Fits on 1 page" STATUS card above it: this is the
+   upsell, so it gets a brand-tinted gradient surface + a leading brand accent
+   rail + soft depth so status ≠ sell and the two green blocks don't merge. */
+.jd-tailor {
+  position: relative; overflow: hidden;
+  margin-top: 4px; padding: 15px 16px 15px 20px; border-radius: 14px;
+  border: 1.5px solid var(--brand-border);
+  background: linear-gradient(135deg, var(--brand-soft), var(--surface-tint));
+  box-shadow: var(--shadow-sm);
+}
+.jd-tailor::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--brand-light), var(--brand));
+}
+.jd-tailor-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.jd-tailor-head .jd-group-title { margin-bottom: 0; }
+.jd-tailor-pro {
+  font-size: 10px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  color: #fff; background: var(--brand); border-radius: 999px; padding: 2px 8px; line-height: 1.4;
+}
+/* Same light-green --brand fill in dark mode: swap white ink for deep green so
+   the PRO badge clears WCAG AA. */
+[data-theme="dark"] .jd-tailor-pro { color: #052e21; }
+.jd-tailor-lock-note, .jd-tailor-intro {
+  font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 4px 0 10px;
+}
+.jd-tailor-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.jd-tailor-row {
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card);
+}
+.jd-tailor-main {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 8px;
+}
+.jd-tailor-term { font-size: 13px; font-weight: 700; color: var(--ink); }
+.jd-tailor-where { display: inline-flex; align-items: baseline; gap: 5px; }
+.jd-tailor-arrow { color: var(--muted); font-weight: 700; }
+.jd-tailor-dest {
+  font-size: 12px; font-weight: 700; color: var(--brand-dark);
+  background: var(--brand-soft); border: 1px solid var(--brand-border);
+  border-radius: 999px; padding: 1px 9px;
+}
+.jd-tailor-tip { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 5px; }
+.jd-tailor-add { margin-top: 9px; }
+.jd-tailor-add:disabled { opacity: .6; cursor: default; }
+
+/* ── Score ring gauge (shared: Resume Score + Job match) ─────────────── */
+.score-ring { position: relative; flex: none; width: clamp(92px, 22vw, 116px); }
+.score-ring svg { display: block; width: 100%; height: auto; }
+.score-ring-track { stroke: var(--ring-track); }
+.score-ring-fill { stroke: var(--brand); }
+/* Shared amber signal on the ring stroke — matches the category bars exactly. */
+.score-ring.mid .score-ring-fill { stroke: var(--warn-fill); }
+.score-ring.low .score-ring-fill { stroke: var(--danger); }
+.score-ring-text {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-ring-num { font-size: 26px; font-weight: 800; letter-spacing: -.5px; line-height: 1.05; color: var(--ink); }
+.score-ring.good .score-ring-num { color: var(--brand-dark); }
+.score-ring.mid .score-ring-num { color: var(--warn-ink); }
+.score-ring.low .score-ring-num { color: var(--danger); }
+.score-ring-cap { font-size: 9.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+/* Inside the tinted job-match score card, --muted lands just under AA on the
+   light red/amber/green washes; deepen it (light theme only — the dark card
+   already pairs light muted text with a dark surface). */
+.jd-score .score-ring-cap { color: #565c69; }
+[data-theme="dark"] .jd-score .score-ring-cap { color: var(--muted); }
+/* Subtle fill sweep on recompute — motion only when the user allows it. */
+@media (prefers-reduced-motion: no-preference) {
+  .score-ring-fill { transition: stroke-dashoffset .7s ease; }
+}
+
+/* ── Shared chip/tag component (impact tags + keyword chips) ─────────── */
+.lr-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; line-height: 1.3;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--input-bg); color: var(--muted); border: 1px solid var(--line);
+}
+.lr-chip .lr-chip-icon { display: flex; flex: none; }
+.lr-chip svg { width: 11px; height: 11px; }
+.lr-chip.matched { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-border); }
+.lr-chip.missing { background: var(--warn-soft); color: var(--warn-ink); border-color: var(--warn-border); }
+.lr-chip.impact-high { background: var(--warn-soft); color: var(--warn-ink); border-color: var(--warn-border); }
+.lr-chip.impact-medium { background: var(--info-soft); color: var(--info-ink); border-color: var(--info-border); }
+/* .impact-low keeps the neutral base tint. */
+
+/* ── On-device resume health check ─────────────────────────────────── */
+.health-result { margin-top: 16px; }
+.health-score {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 18px; border-radius: 16px; margin-bottom: 16px;
+  border: 1px solid var(--line); background: var(--input-bg);
+  box-shadow: var(--shadow-sm);
+}
+/* The big score tiles are the metric focal point — give the tone-tinted
+   versions a subtly stronger presence with the raised ladder. */
+.health-score.good, .health-score.mid, .health-score.low,
+.jd-score.good, .jd-score.mid, .jd-score.low { box-shadow: var(--shadow-md); }
+.health-score-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.health-score-label { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.health-score-sub { font-size: 12px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.health-score.good { background: var(--ok-soft); border-color: var(--brand-border); }
+.health-score.mid { background: var(--warn-soft); border-color: var(--warn-border); }
+.health-score.low { background: var(--danger-soft); border-color: var(--low-border); }
+
+/* ── Resume Score category breakdown ──────────────────────────────── */
+.health-cats { display: flex; flex-direction: column; gap: 14px; }
+.health-cat {
+  border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  background: var(--card); box-shadow: var(--shadow-sm);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .health-cat:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+}
+.health-cat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.health-cat-label { font-size: 13px; font-weight: 800; color: var(--ink); margin: 0; }
+.health-cat-pct { font-size: 12.5px; font-weight: 800; }
+.health-cat-pct.good { color: var(--brand-dark); }
+.health-cat-pct.mid { color: var(--warn-ink); }
+.health-cat-pct.low { color: var(--danger); }
+.health-cat-bar { height: 8px; border-radius: 999px; background: var(--ring-track); overflow: hidden; margin-bottom: 10px; }
+.health-cat-bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+/* Mid uses the shared amber signal (--warn-fill), so a "needs work" bar reads as
+   the same amber as the match ring and stays consistent across light/dark. */
+.health-cat-bar.mid .health-cat-bar-fill { background: var(--warn-fill); }
+.health-cat-bar.low .health-cat-bar-fill { background: var(--danger); }
+.health-label-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.health-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.health-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--input-bg);
+}
+.health-row.good { border-color: var(--brand-border); background: var(--ok-soft); }
+.health-row.warn { border-color: var(--warn-border); background: var(--warn-soft); }
+.health-icon {
+  flex: none; width: 20px; height: 20px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; line-height: 1; margin-top: 1px;
+}
+.health-row.good .health-icon { background: var(--brand); color: #fff; }
+.health-row.warn .health-icon { background: var(--warn-ink); color: #fff; }
+/* Dark-mode contrast fix: the badge fills (--brand / --warn-ink) become light
+   green/amber in dark mode, so white ✓ / ! glyphs on them were near-invisible
+   (~1.9:1). Flip the glyph to the near-black chrome colour → ~9–11:1. */
+[data-theme="dark"] .health-row.good .health-icon,
+[data-theme="dark"] .health-row.warn .health-icon { color: var(--bg); }
+.health-body { min-width: 0; }
+.health-label { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.health-row.good .health-label { color: var(--brand-dark); }
+.health-row.warn .health-label { color: var(--warn-ink); }
+.health-tip { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; word-break: break-word; }
+/* Visually-hidden text kept available to screen readers (row status word). */
+.health-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Share-my-score action row under the health checklist. */
+.health-share-row { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.health-share-row #healthShareMsg { width: 100%; }
+.health-share-row #healthShareMsg:empty { display: none; }
+
+/* ── Live preview (resume document look) ──────────────────────────── */
+/* The preview is its OWN scroll pane: it stays pinned in view and scrolls the
+   resume independently of the form, so a long resume never clips off-screen
+   or force-scrolls the whole page. */
+.preview-wrap {
+  position: sticky; top: 90px;
+  max-height: calc(100vh - 108px);
+  overflow-y: auto; overflow-x: hidden;
+  padding: 6px 12px;
+  scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+}
+.preview-wrap::-webkit-scrollbar { width: 11px; }
+.preview-wrap::-webkit-scrollbar-track { background: transparent; }
+.preview-wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+.preview-wrap::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; border: 3px solid transparent; }
+/* On phones/tablets the preview is NOT a fixed-height nested scroll box — that
+   trapped the lower sections (Education/Skills) below a 78vh cap that barely
+   scrolled on touch. Let the whole resume flow inline so the page scrolls it. */
+@media (max-width: 900px) { .preview-wrap { position: static; top: auto; max-height: none; overflow: visible; } }
+.preview { background: #fff; border: 1px solid var(--line); border-radius: 4px; box-shadow: var(--shadow-lg); padding: 44px 40px; min-height: 500px; }
+/* MODERN keeps the coloured top accent bar; CLASSIC is a plain conservative sheet. */
+.preview.modern { border-top: 8px solid var(--brand); }
+
+/* PAPER STAYS LIGHT: the resume preview is the printed document, so even in
+   dark mode it renders on white with the original light palette. Re-pin the
+   tokens its descendants read back to their light values, scoped to .preview
+   only — the surrounding chrome remains dark. */
+[data-theme="dark"] .preview {
+  --ink: #1a1a2e;
+  --muted: #6b7280;
+  --brand: #047857;
+  --brand-dark: #065f46;
+  --brand-soft: #ecfdf5;
+  --brand-border: #a7f3d0;
+  --body-ink-2: #333333;
+  --line: #e7e8ee;
+  --ghost-line: #e9ebf0;   /* keep skeleton lines light on the (light) paper */
+  /* Keep the empty-state icon-chip gradient LIGHT on the (always-light) paper. */
+  --chip-grad-a: #ecfdf5;
+  --chip-grad-b: #d6f5e6;
+  --chip-ink: #047857;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+/* ── Empty-state ghost / skeleton preview ──────────────────────────── */
+/* Shown while the resume has no content, so the paper reads as an intentional
+   affordance instead of a broken blank card. Kept shorter than the real paper
+   so it never dominates as a void. The paper stays light in dark mode (the
+   .preview rule re-pins tokens), so these read on white in both themes. */
+.preview-ghost { min-height: 0; padding: 34px 40px 40px; position: relative; }
+.ghost-affordance { text-align: center; padding: 8px 0 22px; }
+.ghost-affordance-ic {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; border-radius: 16px;
+  /* Family icon-chip: soft brand gradient fill instead of a flat tint, so the
+     empty-state affordance reads as an intentional, premium placeholder. */
+  background: linear-gradient(150deg, var(--chip-grad-a), var(--chip-grad-b));
+  color: var(--chip-ink); border: 1px solid var(--brand-border);
+  box-shadow: var(--shadow-sm); margin-bottom: 14px;
+}
+.ghost-affordance-ic svg { width: 26px; height: 26px; }
+.ghost-affordance-title { font-size: 15.5px; font-weight: 800; color: var(--ink); }
+.ghost-affordance-sub { font-size: 12.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+.ghost-skel { display: flex; flex-direction: column; gap: 20px; opacity: 1; }
+.ghost-head { display: flex; flex-direction: column; gap: 9px; }
+.ghost-sec { display: flex; flex-direction: column; gap: 8px; }
+/* Decorative preview placeholder — a soft brand-tinted line, not a solid grey
+   "loading" bar. Reads as "your résumé fills in here" rather than a frozen
+   spinner. Faint gradient + low opacity keep it clearly a placeholder. */
+.ghost-line {
+  display: block; height: 10px; border-radius: 999px; max-width: 100%;
+  background: linear-gradient(90deg, var(--chip-grad-b), var(--ghost-line));
+  opacity: .55;
+}
+.ghost-head .ghost-line:first-child { height: 18px; opacity: .7; }
+/* A gentle breathing sweep (not a fast spinner pulse) only when motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  .ghost-line { animation: ghostPulse 2.6s ease-in-out infinite; }
+}
+@keyframes ghostPulse { 0%, 100% { opacity: .55; } 50% { opacity: .38; } }
+/* Template hint in the empty-state skeleton, so switching templates on a blank
+   resume still previews the difference: classic centres its header lines, modern
+   keeps them left with a brand-tinted name bar. */
+.preview.classic .ghost-head { align-items: center; }
+.preview.classic .ghost-head .ghost-line { align-self: center; }
+.preview.modern .ghost-head .ghost-line:first-child { background: var(--brand-border); }
+
+/* ── Shared resume-body defaults (both templates single-column / ATS-safe) ── */
+/* overflow-wrap:anywhere so a long space-less string (URL, run-on name) wraps
+   inside the preview page instead of bleeding out and getting clipped at the
+   card edge. */
+.r-name { font-size: 25px; font-weight: 800; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.r-role { font-size: 13.5px; color: var(--brand-dark); font-weight: 700; margin-top: 2px; overflow-wrap: anywhere; }
+.r-contact { font-size: 11.5px; color: var(--muted); margin-top: 8px; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; overflow-wrap: anywhere; }
+.r-summary { font-size: 12.5px; color: #333; margin-top: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.r-section { margin-top: 20px; }
+.r-section-title { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--brand-dark); border-bottom: 1.5px solid var(--brand-border); padding-bottom: 4px; margin-bottom: 10px; }
+.r-entry { margin-bottom: 12px; }
+.r-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.r-entry-title { font-size: 13px; font-weight: 700; }
+.r-entry-sub { font-size: 12px; color: var(--muted); }
+.r-entry-date { font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.r-bullets { margin-top: 4px; padding-left: 16px; }
+.r-bullets li { font-size: 12px; color: #333; line-height: 1.5; margin-bottom: 2px; overflow-wrap: anywhere; }
+.r-skills { font-size: 12px; color: #333; line-height: 1.7; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TEMPLATE LOOKS — the on-screen preview must OBVIOUSLY differ between the two.
+   Both stay single-column and ATS-friendly (no multi-column, no floats); they
+   differ in typography, header treatment, accent usage, rules and spacing.
+   These rules are scoped to .preview.classic / .preview.modern so they win over
+   the shared defaults above without touching the markup buildPreview() emits.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── CLASSIC: traditional, conservative, centred, serif, ink accents, no green ── */
+.preview.classic {
+  font-family: Georgia, 'Times New Roman', 'Iowan Old Style', serif;
+  color: var(--ink);
+}
+.preview.classic .r-name {
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: .5px;
+  color: var(--ink);
+}
+.preview.classic .r-role {
+  text-align: center;
+  color: var(--ink);
+  font-weight: 600;
+  font-style: italic;
+  font-size: 14px;
+  margin-top: 4px;
+}
+.preview.classic .r-contact {
+  text-align: center;
+  margin-top: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ink);
+}
+.preview.classic .r-summary { margin-top: 16px; text-align: justify; }
+.preview.classic .r-section-title {
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 5px;
+  margin-bottom: 12px;
+}
+.preview.classic .r-entry-title { font-weight: 700; }
+.preview.classic .r-bullets li,
+.preview.classic .r-summary,
+.preview.classic .r-skills { color: var(--body-ink-2); }
+
+/* ── MODERN: contemporary, left-aligned bold name, green accents, sans, tight ── */
+.preview.modern {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+.preview.modern .r-name {
+  text-align: left;
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -.6px;
+  color: var(--brand-dark);
+  line-height: 1.05;
+}
+.preview.modern .r-role {
+  text-align: left;
+  color: var(--brand-dark);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.preview.modern .r-contact { text-align: left; margin-top: 10px; }
+.preview.modern .r-section-title {
+  color: #fff;
+  background: var(--brand);
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 800;
+  font-size: 11px;
+  border-bottom: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-bottom: 12px;
+}
+.preview.modern .r-section { margin-top: 18px; }
+.preview.modern .r-entry { margin-bottom: 11px; padding-left: 11px; border-left: 3px solid var(--brand-border); }
+.preview.modern .r-entry-title { font-weight: 800; color: var(--ink); }
+.preview.modern .r-bullets li::marker { color: var(--brand); }
+
+/* ── EDITORIAL: refined, magazine-style serif résumé, single-column / ATS-safe ──
+   Left-aligned near-black serif name, dusty-rose accent role/links, uppercase
+   ruled section headings. The paper stays light in both themes (the shared
+   [data-theme="dark"] .preview keep-paper-light rule re-pins tokens), so the
+   fixed rose accent below is safe in dark mode too. Rose is scoped here — NOT
+   --brand (which is green). */
+.preview.editorial {
+  --rose: #9e4a5b;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--ink);
+}
+.preview.editorial .r-name {
+  text-align: left;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: .4px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.preview.editorial .r-role {
+  text-align: left;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--rose);
+  font-weight: 600;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: .2px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+.preview.editorial .r-contact {
+  text-align: left;
+  color: var(--muted);
+  margin-top: 9px;
+  font-size: 11.5px;
+}
+.preview.editorial .r-summary {
+  margin-top: 16px;
+  text-align: left;
+  color: var(--body-ink-2);
+  line-height: 1.6;
+}
+.preview.editorial .r-section { margin-top: 24px; }
+.preview.editorial .r-section-title {
+  color: var(--ink);
+  background: none;
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 700;
+  font-size: 11px;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0 0 5px;
+  margin-bottom: 12px;
+}
+.preview.editorial .r-entry { margin-bottom: 14px; padding-left: 0; border-left: none; }
+.preview.editorial .r-entry-title { font-weight: 700; color: var(--ink); }
+.preview.editorial .r-entry-sub { font-style: italic; color: var(--muted); }
+.preview.editorial .r-entry-date { color: var(--muted); }
+.preview.editorial .r-bullets li { color: var(--body-ink-2); }
+.preview.editorial .r-bullets li::marker { color: var(--rose); }
+.preview.editorial .r-skills { color: var(--body-ink-2); line-height: 1.8; }
+
+/* Empty-state ghost hint for Editorial: left-aligned header like the real paper. */
+.preview.editorial .ghost-head { align-items: flex-start; }
+.preview.editorial .ghost-head .ghost-line:first-child { background: var(--brand-border); }
+
+/* ── EXECUTIVE: authoritative senior look, single-column / ATS-safe ──
+   Large bold serif name over a confident full-width deep rule, uppercase bold
+   deep-charcoal-green section headers with a solid rule, refined weight
+   hierarchy. A restrained deep accent (--deep) — distinct from Modern's bright
+   green. The paper stays light in both themes (the shared keep-paper-light
+   rule re-pins tokens), so --deep below is safe in dark mode too. NOT --brand. */
+.preview.executive {
+  --deep: #123a2e;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--ink);
+}
+.preview.executive .r-name {
+  text-align: left;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: .2px;
+  color: var(--deep);
+  line-height: 1.08;
+  /* Confident full-width rule closes the name/role header block. */
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--deep);
+}
+.preview.executive .r-role {
+  text-align: left;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--deep);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-size: 11.5px;
+  margin-top: 9px;
+}
+.preview.executive .r-contact {
+  text-align: left;
+  color: var(--muted);
+  margin-top: 8px;
+  font-size: 11.5px;
+}
+.preview.executive .r-summary {
+  margin-top: 16px;
+  text-align: left;
+  color: var(--body-ink-2);
+  line-height: 1.6;
+}
+.preview.executive .r-section { margin-top: 22px; }
+.preview.executive .r-section-title {
+  color: var(--deep);
+  background: none;
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-weight: 700;
+  font-size: 11.5px;
+  border-bottom: 2px solid var(--deep);
+  border-radius: 0;
+  padding: 0 0 5px;
+  margin-bottom: 12px;
+}
+.preview.executive .r-entry { margin-bottom: 13px; padding-left: 0; border-left: none; }
+.preview.executive .r-entry-title { font-weight: 700; color: var(--ink); }
+.preview.executive .r-entry-sub { font-style: italic; color: var(--muted); }
+.preview.executive .r-entry-date { color: var(--deep); font-weight: 700; }
+.preview.executive .r-bullets li { color: var(--body-ink-2); }
+.preview.executive .r-bullets li::marker { color: var(--deep); }
+.preview.executive .r-skills { color: var(--body-ink-2); line-height: 1.75; }
+/* Empty-state ghost hint for Executive: left-aligned, deep-tinted name bar. */
+.preview.executive .ghost-head { align-items: flex-start; }
+.preview.executive .ghost-head .ghost-line:first-child { background: #b9ccc4; }
+
+/* ── MINIMAL: ultra-clean, sparse, monochrome, single-column / ATS-safe ──
+   Smaller name, no accent colour (pure ink/grey), generous whitespace, light
+   weights, understated wide-letter-spaced uppercase section labels with no rule.
+   Elegant restraint — clearly different from the other four. Sans-serif. */
+.preview.minimal {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+}
+.preview.minimal .r-name {
+  text-align: left;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: .3px;
+  color: var(--ink);
+  line-height: 1.15;
+}
+.preview.minimal .r-role {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 400;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: .2px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.preview.minimal .r-contact {
+  text-align: left;
+  color: var(--muted);
+  margin-top: 10px;
+  font-size: 11px;
+}
+.preview.minimal .r-summary {
+  margin-top: 18px;
+  text-align: left;
+  color: var(--body-ink-2);
+  font-weight: 400;
+  line-height: 1.65;
+}
+.preview.minimal .r-section { margin-top: 26px; }
+.preview.minimal .r-section-title {
+  color: var(--muted);
+  background: none;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  font-weight: 600;
+  font-size: 9.5px;
+  border-bottom: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.preview.minimal .r-entry { margin-bottom: 15px; padding-left: 0; border-left: none; }
+.preview.minimal .r-entry-title { font-weight: 600; color: var(--ink); }
+.preview.minimal .r-entry-sub { color: var(--muted); }
+.preview.minimal .r-entry-date { color: var(--muted); font-weight: 400; }
+.preview.minimal .r-bullets { padding-left: 15px; }
+.preview.minimal .r-bullets li { color: var(--body-ink-2); font-weight: 400; }
+.preview.minimal .r-bullets li::marker { color: var(--muted); }
+.preview.minimal .r-skills { color: var(--body-ink-2); font-weight: 400; line-height: 1.8; }
+/* Empty-state ghost hint for Minimal: left-aligned, understated grey lines. */
+.preview.minimal .ghost-head { align-items: flex-start; }
+
+/* ── Pro paywall modal ────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: var(--backdrop); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.modal {
+  background: var(--card); border-radius: 18px; padding: 28px; max-width: 380px; width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+.pro-modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.pro-price { margin-bottom: 16px; }
+.pro-price-amt { font-size: 28px; font-weight: 800; color: var(--brand-dark); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.pro-price-note { font-size: 13.5px; color: var(--muted); }
+.pro-features { padding-left: 20px; margin-bottom: 20px; color: var(--body-ink-2); font-size: 14px; }
+.pro-features li { margin-bottom: 6px; }
+.pro-actions { display: flex; gap: 10px; }
+.pro-actions .btn { flex: 1; }
+.pro-msg:empty { margin: 0; }
+.hint { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+
+/* ── Polished purchase-failure state (genuine error only) ─────────── */
+.pro-error {
+  margin-top: 14px; padding: 20px 18px 18px; text-align: center;
+  background: var(--danger-soft); border: 1px solid var(--danger);
+  border-radius: 14px;
+}
+.pro-error-mark {
+  display: flex; justify-content: center; margin-bottom: 10px;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--danger) 45%, transparent));
+}
+.pro-error-title {
+  font-size: 17px; font-weight: 800; color: var(--danger);
+  margin: 0 0 8px;
+}
+.pro-error-body {
+  font-size: 13.5px; line-height: 1.5; color: var(--body-ink-2);
+  margin: 0 0 10px;
+}
+.pro-error-reassure {
+  font-size: 12.5px; font-weight: 600; color: var(--body-ink-2);
+  margin: 0 0 10px;
+}
+.pro-error-support {
+  font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 0 14px;
+}
+.pro-error-support a { color: var(--brand-dark); font-weight: 600; }
+.pro-error-retry {
+  width: 100%; min-height: 44px;
+}
+.pro-error-mark svg { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .pro-error { animation: pro-error-in .22s ease both; }
+  @keyframes pro-error-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ── Restore-by-code (cross-device Pro unlock, no accounts) ───────── */
+.restore-code-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--brand-soft); border: 1.5px dashed var(--brand-border); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 18px;
+}
+.restore-code-value { font-size: 15px; font-weight: 700; letter-spacing: .3px; color: var(--brand-dark); word-break: break-all; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.restore-code-input {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 9px; padding: 10px 12px;
+  font-size: 15px; letter-spacing: .5px; margin-bottom: 14px; text-transform: uppercase;
+}
+.restore-code-input:focus { outline: none; border-color: var(--brand-light); }
+.restore-link {
+  display: block; width: 100%; text-align: center; background: none; border: none;
+  color: var(--muted); font-size: 12.5px; margin-top: 12px; padding: 4px; text-decoration: underline;
+  transition: color .15s ease;
+}
+.restore-link:hover { color: var(--brand-dark); }
+
+
+/* ── Pro license card + save nag ──────────────────────────────────── */
+.modal.license-modal { max-width: 520px; }
+.license-card-canvas {
+  display: block; max-width: 100%; height: auto;
+  border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px;
+}
+.license-modal .pro-actions { flex-wrap: wrap; }
+.save-nag {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--brand-soft); border-bottom: 1px solid var(--brand-border);
+  color: var(--brand-dark); font-size: 13px; font-weight: 600;
+  padding: 7px 12px;
+}
+.save-nag-view {
+  background: none; border: 1.5px solid var(--brand-border); border-radius: 999px;
+  color: var(--brand-dark); font-size: 12px; font-weight: 700; padding: 3px 12px;
+}
+.save-nag-view:hover { background: #fff; }
+.save-nag-close {
+  background: none; border: none; color: var(--brand-dark); opacity: .6;
+  font-size: 17px; line-height: 1; padding: 2px 6px;
+}
+.save-nag-close:hover { opacity: 1; }
+
+/* ── Data vault footer row ────────────────────────────────────────── */
+.backup-row { display: flex; justify-content: center; gap: 22px; margin-top: 2px; }
+.backup-row .restore-link { display: inline-block; width: auto; margin-top: 0; }
+
+/* ── Paywall context line (shown when opened right after a JD match) ── */
+.pro-context {
+  background: var(--brand-soft); border: 1px solid var(--brand-border); border-radius: 10px;
+  color: var(--brand-dark); font-size: 12.5px; font-weight: 600; line-height: 1.45;
+  padding: 9px 12px; margin-bottom: 14px;
+}
+/* Durable one-time reassurance line under the paywall benefits. */
+.pro-reassure { color: var(--muted); font-size: 12px; margin: -4px 0 14px; line-height: 1.45; }
+
+/* Neutral (cancelled) / offline / ambiguous status inside the paywall — never red. */
+.status-msg.info { background: var(--input-bg); color: var(--muted); border: 1px solid var(--line); }
+
+/* ── Celebration / ownership moment ───────────────────────────────── */
+.celebrate-head { text-align: center; margin-bottom: 6px; }
+.celebrate-title { font-size: 22px; font-weight: 800; letter-spacing: -.4px; color: var(--brand-dark); }
+.celebrate-thanks { font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.celebrate-unlocked {
+  list-style: none; margin: 16px 0 4px; padding: 14px 16px;
+  background: var(--brand-soft); border: 1px solid var(--brand-border); border-radius: 12px;
+}
+.celebrate-unlocked li { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; font-weight: 600; color: var(--brand-dark); }
+.celebrate-unlocked li + li { margin-top: 9px; }
+.celebrate-unlocked li::before { content: "✓"; flex: none; color: var(--brand); font-weight: 800; }
+.celebrate-divider { height: 1px; background: var(--line); border: none; margin: 20px 0 4px; }
+
+/* Amber "paid but no code yet" self-heal note inside the celebration. */
+.amber-note {
+  background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 12px;
+  color: var(--warn-ink); font-size: 13px; line-height: 1.5; padding: 14px 16px; margin-bottom: 14px;
+}
+.amber-note .btn { margin-top: 12px; }
+
+/* ── Self-heal Pro banner (Pro on this browser, no restore code) ──── */
+.selfheal-nag {
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  background: var(--warn-soft); border-bottom: 1px solid var(--warn-border);
+  color: var(--warn-ink); font-size: 13px; font-weight: 600; padding: 7px 12px;
+}
+.selfheal-nag .selfheal-btn {
+  background: none; border: 1.5px solid var(--warn-border); border-radius: 999px;
+  color: var(--warn-ink); font-size: 12px; font-weight: 700; padding: 3px 12px;
+}
+.selfheal-nag .selfheal-btn:hover { background: var(--card); }
+.selfheal-nag .selfheal-btn[disabled] { opacity: .55; cursor: default; }
+
+/* ── Refund request entry (quiet, guilt-free) ─────────────────────── */
+.refund-entry {
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.refund-summary {
+  cursor: pointer; list-style: none; color: var(--muted); font-size: 12.5px;
+  font-weight: 600; text-align: center; padding: 2px; text-decoration: underline;
+}
+.refund-summary::-webkit-details-marker { display: none; }
+.refund-summary:hover { color: var(--brand-dark); }
+.refund-expect {
+  color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 12px 0 12px;
+}
+.refund-btn { display: inline-block; }
+
+/* ── Access-ended banner (Pro revoked / refunded) — calm, non-destructive ── */
+.access-ended-nag {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  background: var(--brand-soft); border-bottom: 1px solid var(--brand-border);
+  color: var(--brand-dark); font-size: 13px; font-weight: 600;
+  line-height: 1.5; padding: 9px 14px; text-align: center;
+}
+.access-ended-close {
+  flex: none; background: none; border: none; color: var(--brand-dark); opacity: .6;
+  font-size: 18px; line-height: 1; padding: 2px 6px; cursor: pointer;
+}
+.access-ended-close:hover { opacity: 1; }
+
+/* ── Toast (restore-success feedback) ─────────────────────────────── */
+.lr-toast {
+  position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 200; max-width: 92vw;
+  background: var(--brand-dark); color: #fff; font-size: 13.5px; font-weight: 600;
+  padding: 12px 18px; border-radius: 12px; box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 8px;
+}
+.lr-toast::before { content: "✓"; font-weight: 800; }
+@media (prefers-reduced-motion: no-preference) {
+  .lr-toast { animation: lr-toast-in .22s ease; }
+  @keyframes lr-toast-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+}
+
+/* ── Confetti (pure CSS, reduced-motion aware) ────────────────────── */
+.confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 150; overflow: hidden; }
+.confetti-piece {
+  position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; opacity: .9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: .9; }
+}
+/* Reduced motion: no confetti animation at all — the message alone carries the moment. */
+@media (prefers-reduced-motion: reduce) {
+  .confetti-layer { display: none !important; }
+}
+
+/* ── Keyboard focus visibility (WCAG 2.4.7) — added from experience audit ── */
+:focus-visible { outline: 2px solid var(--brand, currentColor); outline-offset: 2px; border-radius: 3px; }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible, .restore-code-input:focus-visible { outline: 2px solid var(--brand, currentColor); outline-offset: 1px; }
+
+/* ── Saved tailored versions (Pro) ──────────────────────────────────────
+   Reuses --card/--line/--brand tokens so both themes track automatically. */
+.versions-head { display: flex; align-items: center; gap: 8px; }
+.versions-head h3 { margin-bottom: 0; }
+.versions-pro-tag {
+  font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--brand); background: var(--brand-soft); border: 1px solid var(--brand-border);
+  padding: 2px 7px; border-radius: 999px; line-height: 1.4;
+}
+.versions-sub { margin-top: 8px; margin-bottom: 12px; }
+.versions-save { margin: 0 0 4px; }
+.versions-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.versions-empty { margin: 0; }
+.version-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+}
+.version-row.is-loaded { border-color: var(--brand-border); background: var(--brand-soft); }
+.version-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.version-nameline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.version-name { font-weight: 700; font-size: 13.5px; color: var(--ink); word-break: break-word; }
+.version-badge {
+  font-size: 10.5px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase;
+  color: #fff; background: var(--brand); padding: 1px 7px; border-radius: 999px; line-height: 1.5;
+}
+.version-date { font-size: 11.5px; color: var(--muted); }
+.version-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.version-actions .btn.sm { min-height: 40px; }
+.version-del { color: var(--danger); border-color: var(--danger); }
+.version-del:hover { background: var(--danger-soft); }
+.version-name-input {
+  width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px;
+  font-size: 14px; background: var(--input-bg); color: var(--ink); margin: 4px 0 4px;
+}
+
+/* ── Form-field trailing icon (About-you contact fields) ─────────────── */
+.field-input-wrap { position: relative; }
+.field input.has-icon { padding-right: 38px; }
+.field-icon {
+  position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); pointer-events: none;
+}
+.field-icon svg { width: 17px; height: 17px; }
+/* Icon picks up the brand tint when its field is focused. */
+.field-input-wrap:focus-within .field-icon { color: var(--brand); }
+
+/* ── Live character count (Professional summary) ─────────────────────── */
+.field-count {
+  margin-top: 5px; text-align: right; font-size: 11.5px; font-weight: 600;
+  color: var(--muted); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+}
+.field-count.over { color: var(--warn-ink); }
+
+/* ── Inline compact Resume Score card (form column top) ──────────────── */
+.inline-score { padding-bottom: 18px; }
+.inline-score-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+/* The card's own title reuses the editor panel accent bar via the shared h3 rule. */
+.inline-score-title { margin-bottom: 0; }
+.inline-score-link {
+  font-size: 12.5px; font-weight: 700; color: var(--brand);
+  white-space: nowrap; border-radius: 8px; padding: 3px 4px; margin: -3px -4px;
+}
+.inline-score-link:hover { text-decoration: underline; }
+.inline-score-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.inline-score-top { display: flex; align-items: center; gap: 16px; }
+.inline-score .score-ring { width: clamp(72px, 18vw, 88px); }
+.inline-score-meta { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.inline-score-count { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.inline-check-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin: 0; padding: 0; }
+.inline-check { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.4; color: var(--ink); }
+.inline-check-ic {
+  flex: none; width: 17px; height: 17px; border-radius: 999px; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; line-height: 1;
+}
+.inline-check.good .inline-check-ic { background: var(--ok-soft); color: var(--brand-dark); }
+.inline-check.warn .inline-check-ic { background: var(--warn-soft); color: var(--warn-ink); }
+.inline-check-label { min-width: 0; }
+.inline-score-empty { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+.inline-score-empty-ic {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand-border);
+}
+.inline-score-empty-ic svg { width: 22px; height: 22px; }
+.inline-score-empty-txt { font-size: 13px; line-height: 1.45; margin: 0; }
+
+/* ── On-device Suggestions coach (right rail) ────────────────────────── */
+.coach-panel { padding: 18px; }
+.coach-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.coach-head-ic {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 9px;
+  background: linear-gradient(150deg, var(--chip-grad-a), var(--chip-grad-b));
+  color: var(--chip-ink); border: 1px solid var(--brand-border); box-shadow: var(--shadow-sm);
+}
+.coach-head-ic svg { width: 17px; height: 17px; }
+/* This title stands on its own head row, so it skips the panel accent bar. */
+.coach-title { margin-bottom: 0; padding-left: 0 !important; }
+.coach-title::before { display: none !important; }
+.coach-sub { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0 0 14px; }
+.coach-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
+.coach-item {
+  border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px;
+  background: var(--surface-tint);
+}
+.coach-item-top { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 5px; }
+.coach-item-label { font-size: 13px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+.coach-item-tip { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
+.coach-item-jump {
+  display: inline-block; margin-top: 8px; padding: 6px 8px; margin-left: -8px;
+  font-size: 12px; font-weight: 700; color: var(--brand);
+  background: transparent; border: none; border-radius: 8px; cursor: pointer;
+}
+.coach-item-jump:hover { background: var(--brand-soft); }
+.coach-item-jump:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.coach-empty, .coach-clear { padding: 4px 0 2px; }
+.coach-empty-txt { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.coach-clear { display: flex; align-items: flex-start; gap: 10px; }
+.coach-clear-ic {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 999px; margin-top: 1px;
+  background: var(--ok-soft); color: var(--brand-dark); border: 1px solid var(--brand-border);
+}
+.coach-clear-ic svg { width: 15px; height: 15px; }
+.coach-clear-txt { font-size: 12.5px; color: var(--ink); line-height: 1.5; margin: 0; }
+
+/* Recruiter tip card — generic best-practice, brand-tinted. */
+.recruiter-tip {
+  margin-top: 14px; padding: 12px 13px; border-radius: 12px;
+  background: var(--brand-soft); border: 1px solid var(--brand-border);
+}
+.recruiter-tip-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.recruiter-tip-ic { flex: none; display: flex; color: var(--brand); }
+.recruiter-tip-ic svg { width: 16px; height: 16px; }
+.recruiter-tip-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--brand-dark);
+}
+.recruiter-tip-body { font-size: 12.5px; color: var(--ink); line-height: 1.5; margin: 0; }
+
+
+/* ── Safari / iOS WebKit compatibility ───────────────────────────────────── */
+/* Prevent iOS text inflation on rotate; keep authored scale. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Kill the grey iOS tap-flash on custom controls — real feedback is the app's
+   own :active / :focus-visible styles. */
+* { -webkit-tap-highlight-color: transparent; }
+/* iOS Safari zooms the page when a focused input's font-size is < 16px. Force
+   >=16px on touch devices only; desktop keeps its tighter type scale. */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* Match native UI (scrollbars, dropdowns, date pickers, autofill) to the active
+   theme instead of always rendering light. Follows the app toggle via data-theme. */
+:root { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }

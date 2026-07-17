@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Help — LocalResume</title>
+<meta name="description" content="Get help with LocalResume: contact support and find answers about Pro purchases, restores, refunds, and your on-device data.">
+<link rel="canonical" href="https://localresumeapp.com/support.html">
+<link rel="icon" href="assets/favicon.svg">
+<script>try{var n=(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform())||location.protocol==='capacitor:'||location.hostname==='localhost'||/[?&]native=1/.test(location.search);if(n)document.documentElement.className+=' native';}catch(e){}</script>
+<style>
+  /* Platform-aware payment/refund copy: web shows Stripe + email-us; the iOS app shows Apple refunds. */
+  .only-ios { display: none; }
+  html.native .only-web { display: none; }
+  html.native .only-ios { display: block; }
+  :root {
+    --brand: #047857; --brand-dark: #065f46; --brand-soft: #ecfdf5;
+    --ink: #1a1a2e; --muted: #6b7280; --line: #e7e8ee; --bg: #f7f7fb; --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink); background: var(--bg); margin: 0; line-height: 1.6;
+  }
+  .topbar {
+    padding: max(18px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 18px max(24px, env(safe-area-inset-left));
+    border-bottom: 1px solid var(--line); background: rgba(255,255,255,.85);
+    backdrop-filter: saturate(180%) blur(12px); position: sticky; top: 0;
+  }
+  .topbar a { color: var(--ink); text-decoration: none; font-weight: 800; font-size: 17px; letter-spacing: -.3px; }
+  main { max-width: 680px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 30px; letter-spacing: -.5px; margin: 0 0 6px; }
+  .sub { color: var(--muted); font-size: 15.5px; margin-bottom: 28px; }
+  h2 { font-size: 19px; margin: 34px 0 10px; }
+  p, li { color: #333; font-size: 15.5px; }
+  ul { padding-left: 22px; }
+  a { color: var(--brand); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 22px; margin: 20px 0;
+  }
+  .btn {
+    display: inline-block; background: var(--brand); color: #fff; font-weight: 700;
+    padding: 11px 20px; border-radius: 10px; margin-top: 6px;
+  }
+  .copy-address {
+    display: block; background: none; border: none; padding: 0; margin: 10px 0 0;
+    color: var(--muted); font: inherit; font-size: 13.5px; text-decoration: underline;
+    text-underline-offset: 2px; cursor: pointer; text-align: left;
+  }
+  /* Dark theme — follows the system setting (this page has no toggle), using
+     the same dark tokens as the main app. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #34d399; --brand-dark: #6ee7b7; --brand-soft: #10231c;
+      --ink: #e8e8ed; --muted: #a1a1b0; --line: #2a2c34; --bg: #15161a; --card: #1c1d22;
+    }
+    .topbar { background: rgba(24,25,30,.85); }
+    p, li { color: #d3d3dc; }
+    .btn { color: #052e21; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar"><a href="./">← LocalResume</a></div>
+  <main>
+    <h1>Help</h1>
+    <p class="sub">Questions, bug reports, or feature requests — here's how to reach us.<br><span style="font-size:13.5px">Last updated: July 16, 2026</span></p>
+
+    <div class="card">
+      <h2 style="margin-top:0">Contact</h2>
+      <p>Email <strong>support@localresumeapp.com</strong> and we'll get back to you.</p>
+      <a class="btn" href="mailto:support@localresumeapp.com">Email support</a>
+      <button type="button" class="copy-address" onclick="copyAddress(this)">Copy address</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Request a refund</h2>
+      <div class="only-web">
+      <p><strong>30-day money-back guarantee.</strong> Email us and a real person reviews it — no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5–10 business days to appear on your statement.</p>
+      <p style="margin-bottom:4px">In your email, please paste:</p>
+      <ul style="margin-top:4px">
+        <li>Your <strong>restore code</strong> (from your Pro license card — it starts with <code>LRES-</code>)</li>
+        <li>The <strong>email on your Stripe receipt</strong>, so we can find the purchase</li>
+      </ul>
+      <a class="btn" href="mailto:support@localresumeapp.com?subject=Refund%20request%20%E2%80%94%20LocalResume%20Pro&amp;body=Hi%20LocalResume%20team%2C%0A%0AI'd%20like%20to%20request%20a%20refund%20for%20my%20LocalResume%20Pro%20purchase.%0A%0AMy%20restore%20code%3A%20%0AEmail%20on%20my%20Stripe%20receipt%3A%20%0AReason%20(optional)%3A%20%0A%0AThanks%20%E2%80%94%20I%20understand%20a%20real%20person%20will%20review%20this%20and%20reply.%0A">Email a refund request</a>
+      </div>
+      <div class="only-ios">
+      <p><strong>Refunds on iPhone &amp; iPad are handled by Apple.</strong> Apple manages all App Store purchases, so refund requests go directly to Apple — it's quick, and Apple reviews and processes it.</p>
+      <a class="btn" href="https://reportaproblem.apple.com" target="_blank" rel="noopener">Request a refund from Apple</a>
+      </div>
+    </div>
+
+    <h2>Common questions</h2>
+
+    <p><strong>Will my resume sync to my other devices?</strong><br>
+    No — by design. LocalResume stores everything only on the device you're using, with no account and no cloud sync. If you need your resume on another device, export it as a PDF and share it over (AirDrop, email, etc.).</p>
+
+    <p><strong>I deleted the app / cleared my browser data — can I get my resume back?</strong><br>
+    Only from a backup you made yourself. Since nothing is ever uploaded, there's no copy on our end to restore from. If you saved a backup file (footer → <strong>Back up your data</strong>), you can import it with <strong>Restore from backup</strong>. This is the tradeoff for full privacy — see the <a href="privacy.html">Privacy Policy</a> for details.</p>
+
+    <p class="only-web"><strong>Is there a paid plan?</strong><br>
+    LocalResume is free to use. There's one optional upgrade — <strong>Pro, a one-time $12.99 purchase</strong> (no subscription) that unlocks Word (.docx) export, the cover letter builder, tailor-to-job hints, and unlimited saved versions. Payment is handled securely by Stripe and RevenueCat; you enter an email for your receipt only, it's not an account, and we never see your card. Your resume is never sent to them — see the <a href="privacy.html#payments">Privacy Policy</a> for the details.</p>
+    <p class="only-ios"><strong>Is there a paid plan?</strong><br>
+    LocalResume is free to use. There's one optional upgrade — <strong>Pro, a one-time $12.99 purchase</strong> (no subscription) that unlocks Word (.docx) export, the cover letter builder, tailor-to-job hints, and unlimited saved versions. On iPhone and iPad, checkout is handled by Apple through the App Store — we never see your card, name, or email. Your resume is never sent to them — see the <a href="privacy.html#payments">Privacy Policy</a> for the details.</p>
+
+    <p class="only-web"><strong>Can I get a refund?</strong><br>
+    Yes — Pro comes with a <strong>30-day money-back guarantee</strong>. If it's not for you, email <a href="mailto:support@localresumeapp.com">support@localresumeapp.com</a> within 30 days of purchase for a full refund. Once approved, your refund takes about <strong>5–10 business days</strong> to appear on your statement.</p>
+    <p class="only-ios"><strong>Can I get a refund?</strong><br>
+    Yes — on iPhone and iPad, refunds are handled by <strong>Apple</strong>. Request one at <a href="https://reportaproblem.apple.com" target="_blank" rel="noopener">reportaproblem.apple.com</a> and Apple reviews and processes it.</p>
+
+    <p class="only-web"><strong>I bought Pro — how do I keep it / move it to another browser?</strong><br>
+    Right after you buy, LocalResume shows a restore code (your "license card"). Because there are no accounts, that code is how you re-unlock Pro in another browser, so save it somewhere safe. Keep your Stripe receipt email too — it's your proof of purchase. The iPhone/iPad app sells Pro separately through the App Store. Lost your code? Email <a href="mailto:support@localresumeapp.com">support@localresumeapp.com</a> and we'll help.</p>
+    <p class="only-ios"><strong>I bought Pro — how do I keep it / move it to another device?</strong><br>
+    Your purchase belongs to your Apple Account. On another iPhone or iPad, open LocalResume and tap <strong>Restore Purchases</strong> — Pro unlocks again at no charge, no code needed. Your Apple receipt is your proof of purchase. Need a hand? Email <a href="mailto:support@localresumeapp.com">support@localresumeapp.com</a>.</p>
+
+    <p><strong>Does LocalResume work offline?</strong><br>
+    Yes, once loaded. There's no server it depends on for day-to-day use.</p>
+
+    <h2>Something not covered here?</h2>
+    <p>Email <a href="mailto:support@localresumeapp.com">support@localresumeapp.com</a> — happy to help.</p>
+  </main>
+  <script>
+    function copyAddress(btn) {
+      var addr = "support@localresumeapp.com";
+      var done = function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = "Copy address"; }, 2000);
+      };
+      var fallback = function () { window.prompt("Copy the address:", addr); };
+      try {
+        navigator.clipboard.writeText(addr).then(done, fallback);
+      } catch (e) {
+        fallback();
+      }
+    }
+  </script>
+</body>
+</html>
