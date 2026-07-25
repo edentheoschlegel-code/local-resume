@@ -28025,7 +28025,7 @@ but received
   function readEntitlement(customerInfo) {
     return Boolean(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active[ENTITLEMENT_ID] && customerInfo.entitlements.active[ENTITLEMENT_ID].isActive);
   }
-  var cachedProStatus = false;
+  var cachedProStatus = hasProSeen();
   function isPro() {
     return cachedProStatus;
   }

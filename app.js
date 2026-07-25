@@ -4075,7 +4075,7 @@ $("#logo").addEventListener("keydown", (e) => {
   btn.addEventListener("click", () => { api.cycle(); reflect(); });
 })();
 
-buildEditor();
+try { buildEditor(); } catch (e) {}
 // Boot entitlement check — ONLY when this browser might already own Pro
 // (Billing.shouldCheckAtBoot() is false for a brand-new visitor, so fresh
 // loads still make ZERO billing network calls). This recovers the "paid then
@@ -4126,7 +4126,11 @@ function updateLicenseFooterLink() {
   // Show the license link only for a current owner with a code — so on a
   // verified access-stop it hides cleanly even though the (now-invalid) code is
   // left in storage rather than aggressively purged.
-  if (link) link.classList.toggle("hidden", !(isPro && Billing.getRestoreCode()));
+  // getRestoreCode() guarded like the isPro() read above: this runs during boot, so an
+  // unguarded throw would stop every later top-level statement — including the router,
+  // the service worker and the ?restore= deep-link guard.
+  let savedCode = null; try { savedCode = Billing.getRestoreCode(); } catch { savedCode = null; }
+  if (link) link.classList.toggle("hidden", !(isPro && savedCode));
   // Footer refund entry: visible to owners (isPro), href pre-filled with the
   // current restore code. Kept in sync here so it hides cleanly on access-stop.
   const refund = $("#footerRefundLink");
@@ -4162,7 +4166,10 @@ function updateUnlockProCard() {
 })();
 function maybeShowSaveNag() {
   if (IS_NATIVE) return; // iOS has no restore CODE / license card — Apple restore covers cross-device
-  const code = Billing.getRestoreCode();
+  // Guarded like the isPro() read below: this runs at top level during boot, so an
+  // unguarded throw here would stop every later top-level statement — including the
+  // router, the service-worker registration and the ?restore= deep-link guard.
+  let code = null; try { code = Billing.getRestoreCode(); } catch { code = null; }
   // Only nag to save the license card when this browser is ACTUALLY Pro — a stored
   // code alone isn't enough (a refunded/expired/hollow code leaves a stale code in
   // localStorage, and "Keep Pro safe" next to the Unlock-Pro paywall reads as broken).
@@ -4212,8 +4219,11 @@ function maybeShowSelfHealNag() {
   document.body.insertBefore(b, document.body.firstChild);
 }
 $("#footerLicenseLink").onclick = () => showLicenseCardModal();
-updateLicenseFooterLink();
-maybeShowSaveNag();
+// Wrapped so a billing/DOM fault here cannot halt the rest of boot below — the
+// router, the service-worker registration and the ?restore= deep-link guard all
+// run as later top-level statements.
+try { updateLicenseFooterLink(); } catch (e) {}
+try { maybeShowSaveNag(); } catch (e) {}
 
 // Data vault footer row.
 $("#footerBackupLink").onclick = () => exportVault();
