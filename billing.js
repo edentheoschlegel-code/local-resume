@@ -1136,6 +1136,7 @@ var Billing = (() => {
   __export(billing_src_exports, {
     getNativeLocalizedPrice: () => getNativeLocalizedPrice,
     getRestoreCode: () => getRestoreCode,
+    isNativeStoreReady: () => isNativeStoreReady,
     isPro: () => isPro,
     mintRestoreCode: () => mintRestoreCode,
     purchasePro: () => purchasePro,
@@ -27875,6 +27876,15 @@ but received
     }
     return false;
   }
+  function isRealPrice(product) {
+    if (!product) return false;
+    const s = product.priceString;
+    if (typeof s !== "string" || !s) return false;
+    const n = product.price;
+    if (typeof n === "number" && Number.isFinite(n)) return n > 0;
+    const digits = s.replace(/\D/g, "");
+    return digits.length > 0 && /[1-9]/.test(digits);
+  }
   async function getNativeLocalizedPrice() {
     if (!IS_NATIVE) return null;
     try {
@@ -27883,8 +27893,8 @@ but received
         const offerings = await Purchases.getOfferings();
         const current = offerings && offerings.current;
         const pkg = current && current.lifetime || current && Array.isArray(current.availablePackages) && current.availablePackages[0] || null;
-        const price = pkg && pkg.product && pkg.product.priceString;
-        return typeof price === "string" && price ? price : null;
+        const product = pkg && pkg.product;
+        return isRealPrice(product) ? product.priceString : null;
       })();
       fetchPrice.catch(() => {
       });
@@ -27892,6 +27902,10 @@ but received
     } catch {
       return null;
     }
+  }
+  async function isNativeStoreReady() {
+    if (!IS_NATIVE) return false;
+    return await getNativeLocalizedPrice() !== null;
   }
   function generateRestoreCode() {
     const bytes = new Uint8Array(12);

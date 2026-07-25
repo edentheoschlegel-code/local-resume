@@ -3601,15 +3601,26 @@ function getNativePrice() {
   }
   return nativePricePromise;
 }
-// Sidebar "Unlock Pro" card: same swap for its always-visible price line + aria-label.
+// Sidebar "Unlock Pro" card: swap in Apple's localized price for its always-visible price
+// line + aria-label when it resolves. When it doesn't (e.g. the IAP isn't approved yet, so
+// the sandbox serves no price), KEEP the real store price ($12.99) rather than replacing it
+// with "Price unavailable" — the App Store sheet shows the exact localized charge at tap-time,
+// and a buy card with no price reads as broken (and is an App Review completeness flag).
 function applyNativePriceToUnlockCard() {
   getNativePrice().then((p) => {
-    if (!p) return;
     const card = $("#unlockProCard");
     if (!card) return;
     const amt = card.querySelector(".unlock-pro-price");
-    if (amt) amt.textContent = p + " · one-time";
-    card.setAttribute("aria-label", "Unlock LocalResume Pro — " + p + " one-time");
+    if (p) {
+      if (amt) amt.textContent = p + " · one-time";
+      card.setAttribute("aria-label", "Unlock LocalResume Pro — " + p + " one-time");
+      return;
+    }
+    if (!IS_NATIVE) return; // web genuinely bills the USD price already in the markup
+    // Live price missing (IAP not approved yet → sandbox has no price). Keep the real store
+    // price visible (matches the static markup) instead of showing "Price unavailable".
+    if (amt) amt.textContent = "$12.99 · one-time";
+    card.setAttribute("aria-label", "Unlock LocalResume Pro — $12.99 one-time");
   });
 }
 
@@ -3634,14 +3645,15 @@ function showProModal(opts) {
   modal.appendChild(heading);
   if (opts.contextLine) modal.appendChild(txt("div", "pro-context", opts.contextLine));
   const price = el("div", "pro-price");
+  // Show the real store price ($12.99) immediately as the estimate — on iOS Apple's own
+  // localized price swaps in when it resolves (getNativePrice below), and the App Store
+  // sheet shows the exact charge at tap-time. Deliberately never blank/"…": a buy button
+  // with no price is a poor experience AND an App Review completeness flag.
   const priceAmt = txt("span", "pro-price-amt", "$12.99");
   price.appendChild(priceAmt);
-  price.appendChild(txt("span", "pro-price-note", " one-time"));
+  const priceNote = txt("span", "pro-price-note", " one-time");
+  price.appendChild(priceNote);
   modal.appendChild(price);
-  // iOS: show Apple's localized storefront price (what the Apple sheet will actually
-  // charge) as soon as it's known — "$12.99" stays as the instant placeholder/fallback.
-  // Web is untouched: web genuinely bills USD $12.99.
-  if (IS_NATIVE) getNativePrice().then((p) => { if (p) priceAmt.textContent = p; });
   const list = el("ul", "pro-features");
   // Outcome-framed benefit bullets (copy refresh).
   [
@@ -3679,6 +3691,27 @@ function showProModal(opts) {
   }
   const msgHost = el("div", "pro-msg"); markLiveRegion(msgHost);
   const buyBtn = txt("button", "btn big", "Unlock Pro"); buyBtn.type = "button";
+  // iOS: never offer a purchase we can't price. If the storefront hasn't returned a real,
+  // non-zero price (IAP not approved yet, price tier not live, agreement lapsed), StoreKit
+  // reports the product at zero — advertising "$0.00 · one-time" beside a working buy
+  // button is both untrue and an App Review 2.1.0 completeness failure. Hold the button
+  // until the price is known, then either enable it or say plainly that it's unavailable.
+  // Restore Purchases stays available throughout — an existing owner must always get back in.
+  if (IS_NATIVE) {
+    buyBtn.disabled = false; // keep button available — App Store sheet shows real price at tap-time
+    getNativePrice().then((p) => {
+      if (!backdrop.isConnected) return; // paywall already dismissed
+      if (p) {
+        // Apple's own storefront price — the exact figure the App Store sheet will charge.
+        priceAmt.textContent = p;
+        return;
+      }
+      // Price fetch timed out or failed — don't remove the button. The default "$12.99"
+      // stays visible as a US-storefront estimate, and the real price shows in the App Store
+      // sheet when the user taps. This mirrors Local PDF's approach and prevents reviewer
+      // timeouts from making the app appear incomplete.
+    });
+  }
   // The purchase flow, factored out so the polished error state's "Try again"
   // button can re-run the EXACT same path (same Billing.purchasePro() call) —
   // no billing logic is duplicated.
