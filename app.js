@@ -3110,7 +3110,7 @@ function refreshAfterProChange() {
 }
 
 // Lightweight aria-live toast for transient success (e.g. restore succeeded).
-function showToast(message) {
+function showToast(message, ms) {
   const existing = $(".lr-toast");
   if (existing) existing.remove();
   const toast = el("div", "lr-toast");
@@ -3118,7 +3118,7 @@ function showToast(message) {
   toast.setAttribute("aria-live", "polite");
   toast.appendChild(document.createTextNode(message));
   document.body.appendChild(toast);
-  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4200);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, ms || 4200);
 }
 
 // Pure-CSS/DOM confetti, reduced-motion aware. The CSS hides .confetti-layer
@@ -3351,12 +3351,14 @@ function showRestoreCodeModal(code) {
 function showCelebrationModal(code, alreadyOwned) {
   const alreadyCelebrated = hasCelebrated();
   markCelebrated();
-  fireConfetti();
+  // fireConfetti() call removed 2026-08-05 at Eden's request — it drew ON TOP of the
+  // modal (the layer sat above it in the stacking order) and covered the feature list.
+  // The function below is left in place, unused, so it can be restored deliberately.
   const backdrop = el("div", "modal-backdrop");
   const modal = el("div", "modal pro-modal license-modal");
 
   const head = el("div", "celebrate-head");
-  const title = txt("div", "celebrate-title", "It's yours — forever."); title.id = "celebrateTitle";
+  const title = txt("div", "celebrate-title", "Pro, unlocked."); title.id = "celebrateTitle";
   head.appendChild(title);
   head.appendChild(txt("p", "celebrate-thanks", IS_NATIVE
     ? "Thank you for supporting a private, on-device tool. LocalResume Pro is now unlocked on this device."
@@ -3664,7 +3666,7 @@ function showProModal(opts) {
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(list);
   // Durable one-time reassurance line.
-  modal.appendChild(txt("p", "pro-reassure", "One-time unlock — yours forever, for every resume and cover letter you make. No subscription."));
+  modal.appendChild(txt("p", "pro-reassure", "One purchase, not a subscription — for every resume and cover letter you make. You won't be charged again."));
   if (IS_NATIVE) {
     // Apple IAP: no Stripe, no email receipt, no "your statement" (Apple bills), no self-run
     // money-back (refunds go through Apple's Report a Problem). One clean line replaces all three.
@@ -3768,7 +3770,7 @@ function showProModal(opts) {
       if (res && res.ok) { backdrop.remove(); refreshAfterProChange(); runPendingIntent(); }
       else {
         restoreLink.disabled = false; restoreLink.textContent = prev;
-        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with.", "info");
+        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", "info");
       }
     };
   } else {
@@ -4107,7 +4109,7 @@ if (IS_NATIVE) {
     catch (e) { console.error("LocalResume: restore threw", e); res = { ok: false }; }
     footerRestore.disabled = false; footerRestore.textContent = prev;
     if (res && res.ok) { refreshAfterProChange(); runPendingIntent(); showToast("Pro restored on this device."); }
-    else { showToast("No previous purchase found for this Apple Account."); }
+    else { showToast("No previous purchase found for this Apple Account. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", 9000); }
   };
 } else {
   $("#footerRestoreLink").onclick = () => showRestoreEntryModal();

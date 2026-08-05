@@ -27885,6 +27885,15 @@ but received
     const digits = s.replace(/\D/g, "");
     return digits.length > 0 && /[1-9]/.test(digits);
   }
+  function isZeroPriced(product) {
+    if (!product) return false;
+    const n = product.price;
+    if (typeof n === "number" && Number.isFinite(n)) return n <= 0;
+    const s = product.priceString;
+    if (typeof s !== "string" || !s) return false;
+    const digits = s.replace(/\D/g, "");
+    return digits.length > 0 && !/[1-9]/.test(digits);
+  }
   async function getNativeLocalizedPrice() {
     if (!IS_NATIVE) return null;
     try {
@@ -28076,6 +28085,11 @@ but received
         const pkg = offerings && offerings.current && offerings.current.lifetime;
         if (!pkg) {
           purchaseLockUntil = 0;
+          return { ok: false, error: "Pro isn't available for purchase right now \u2014 try again shortly." };
+        }
+        if (isZeroPriced(pkg.product)) {
+          purchaseLockUntil = 0;
+          console.error("LocalResume: refusing purchase \u2014 the storefront reports a zero price for the Pro package");
           return { ok: false, error: "Pro isn't available for purchase right now \u2014 try again shortly." };
         }
         const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
@@ -28282,7 +28296,7 @@ but received
     ctx.stroke();
     ctx.fillStyle = MUTED;
     ctx.font = "400 19px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.fillText("This code restores your Pro purchase on any device. Keep it private \u2014 anyone with it gets Pro.", 56, H2 - 88);
+    ctx.fillText("Restores Pro in your web browser, on any device. Keep it private \u2014 anyone with it gets Pro.", 56, H2 - 88);
     ctx.fillStyle = BRAND;
     ctx.font = "600 19px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.fillText("localresumeapp.com", 56, H2 - 52);
