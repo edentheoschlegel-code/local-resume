@@ -1,7 +1,7 @@
 {
   "name": "LocalResume — Private Resume Builder",
   "short_name": "LocalResume",
-  "description": "Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device — no account, no subscription trap.",
+  "description": "Build a polished, ATS-friendly resume entirely in your browser. Your career history and contact details never leave your device. No account needed.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

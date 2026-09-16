@@ -228,8 +228,8 @@ function showAutosaveNote(ok) {
   note.style.color = ok ? "" : "var(--danger, #b91c1c)";
 }
 function friendly(e) {
-  if (e && e.name === "QuotaExceededError") return "Couldn't save — your browser's local storage is full.";
-  if (e && e.name) return "Couldn't save — local storage is blocked (this can happen in private browsing).";
+  if (e && e.name === "QuotaExceededError") return "Couldn't save. Your browser's local storage is full.";
+  if (e && e.name) return "Couldn't save. Local storage is blocked (this can happen in private browsing).";
   return "Couldn't save right now. Your changes are still on this screen.";
 }
 
@@ -255,7 +255,7 @@ function applyStarterExample() {
   persistNow();
   buildEditor();
   const msg = $("#editorMsg");
-  if (msg) status(msg, "Loaded an example resume — edit any field to make it yours.", "ok");
+  if (msg) status(msg, "Loaded an example resume. Edit any field to make it yours.", "ok");
 }
 
 // Small confirm dialog reused for the "replace my draft?" guard. Mirrors the
@@ -384,11 +384,11 @@ function renderInlineScore(host) {
 // practices, NOT fabricated statistics attributed to LocalResume. Rotated by a
 // per-load index so the card feels alive without ever inventing "our data".
 const RECRUITER_TIPS = [
-  "Résumés with concrete metrics tend to get more interview requests — quantify your wins.",
+  "Résumés with concrete metrics tend to get more interview requests. Quantify your wins.",
   "Recruiters skim first. Lead each bullet with a strong action verb (Led, Built, Increased).",
-  "Mirror the job posting's language — matching key terms helps you clear ATS filters.",
+  "Mirror the job posting's language. Matching key terms helps you clear ATS filters.",
   "One page per ~10 years of experience keeps a résumé tight and readable.",
-  "A short, specific summary beats a long objective — say what you do and the impact you drive.",
+  "A short, specific summary beats a long objective. Say what you do and the impact you drive.",
 ];
 let recruiterTipIndex = Math.floor(Math.random() * RECRUITER_TIPS.length);
 
@@ -407,7 +407,7 @@ function buildCoachPanel() {
     '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></svg>'));
   head.appendChild(txt("h3", "coach-title", "Résumé coach"));
   panel.appendChild(head);
-  panel.appendChild(txt("p", "coach-sub", "On-device tips from your résumé — nothing leaves this device."));
+  panel.appendChild(txt("p", "coach-sub", "On-device tips from your résumé. Nothing leaves this device."));
   const body = el("div"); body.id = "coachBody"; body.className = "coach-body";
   markLiveRegion(body);
   panel.appendChild(body);
@@ -451,7 +451,7 @@ function collectSuggestions() {
     out.push({
       kind: "keywords", weight: 1.4,
       label: "Add job-matched keywords",
-      tip: `The job description mentions ${miss.map((w) => `“${w}”`).join(", ")}${jdLastResult.missing.length > 4 ? ", and more" : ""} — weave the relevant ones into your bullets, summary, or skills.`,
+      tip: `The job description mentions ${miss.map((w) => `“${w}”`).join(", ")}${jdLastResult.missing.length > 4 ? ", and more" : ""}. Weave the relevant ones into your bullets, summary, or skills.`,
       route: "#/match", routeLabel: "Open Job Match →",
     });
   }
@@ -471,7 +471,7 @@ function renderCoach(host) {
     const clear = el("div", "coach-clear");
     clear.appendChild(el("span", "coach-clear-ic",
       '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'));
-    clear.appendChild(txt("p", "coach-clear-txt", "Nice — your résumé passes every on-device check. Match it to a specific job to sharpen it further."));
+    clear.appendChild(txt("p", "coach-clear-txt", "Nice. Your résumé passes every on-device check. Match it to a specific job to sharpen it further."));
     host.appendChild(clear);
     return;
   }
@@ -674,7 +674,7 @@ function buildEditor() {
     const orig = pdfBtn.textContent; pdfBtn.disabled = true; pdfBtn.textContent = "Generating…";
     try { await doExport(); } finally { pdfBtn.disabled = false; pdfBtn.textContent = orig; }
   };
-  const docxBtn = txt("button", "btn ghost", "Export Word (.docx) — Pro"); docxBtn.type = "button"; docxBtn.onclick = doExportDocx;
+  const docxBtn = txt("button", "btn ghost", "Export Word (.docx) · Pro"); docxBtn.type = "button"; docxBtn.onclick = doExportDocx;
   // Free third output format: clean, ATS-safe plain text. Copy to clipboard or
   // download as .txt — no Pro gate.
   const copyTxtBtn = txt("button", "btn ghost", "Copy as plain text"); copyTxtBtn.type = "button"; copyTxtBtn.onclick = () => doCopyPlainText(copyTxtBtn);
@@ -841,14 +841,14 @@ function renderBulletHints(host, text) {
   if (weakPhrase || bulletHasWeakOpener(t)) {
     const verbs = STRONG_VERB_SUGGESTIONS.slice(0, 3).join(", ");
     const msg = weakPhrase
-      ? `Swap "${weakPhrase}" for a strong verb — e.g. ${verbs}.`
-      : `Open with a strong action verb — e.g. ${verbs}.`;
+      ? `Swap "${weakPhrase}" for a strong verb, e.g. ${verbs}.`
+      : `Open with a strong action verb, e.g. ${verbs}.`;
     host.appendChild(buildBulletHint("verb", msg));
   }
 
   // Quantify-my-impact prompter.
   if (!bulletHasMetric(t)) {
-    host.appendChild(buildBulletHint("metric", "Add a metric — a %, $, count, or time."));
+    host.appendChild(buildBulletHint("metric", "Add a metric: a %, $, count, or time."));
   }
 }
 // One advisory hint chip: an icon + message. `kind` ("verb" | "metric") only
@@ -926,7 +926,7 @@ function buildPreviewGhost() {
   affordance.appendChild(el("span", "ghost-affordance-ic",
     '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>'));
   affordance.appendChild(txt("div", "ghost-affordance-title", "Your resume builds here as you type"));
-  affordance.appendChild(txt("div", "ghost-affordance-sub", "Start with your name in the Editor — the live preview fills in instantly."));
+  affordance.appendChild(txt("div", "ghost-affordance-sub", "Start with your name in the Editor. The live preview fills in instantly."));
   card.appendChild(affordance);
 
   const skel = el("div", "ghost-skel"); skel.setAttribute("aria-hidden", "true");
@@ -1081,7 +1081,7 @@ function refreshPageFit() {
   } else {
     body.appendChild(txt("span", "jd-fit-title", `Spilling to ~${fit.pageCount} pages`));
     const sub = fit.longest
-      ? `Consider trimming — your ${fit.longest} section is the longest.`
+      ? `Consider trimming. Your ${fit.longest} section is the longest.`
       : "Consider trimming to keep it to one page.";
     body.appendChild(txt("span", "jd-fit-sub", sub));
   }
@@ -1168,7 +1168,7 @@ function allBullets() {
   });
   return out;
 }
-// Total visible content length across the whole resume — the sparseness proxy.
+// Total visible content length across the whole resume. The sparseness proxy.
 function totalContentLength() {
   return resumeCorpus().replace(/\s+/g, " ").trim().length;
 }
@@ -1182,7 +1182,7 @@ function computeHealth() {
   const checks = [];
   const add = (id, ok, weight, label, tip) => checks.push({ id, ok, weight, label, tip });
 
-  // 1. Contact completeness — email + phone + location.
+  // 1. Contact completeness. Email + phone + location.
   const hasEmail = !!(p.email && p.email.trim());
   const hasPhone = !!(p.phone && p.phone.trim());
   const hasLocation = !!(p.location && p.location.trim());
@@ -1192,12 +1192,12 @@ function computeHealth() {
     contactOk ? "Email, phone, and location are all present."
       : `Add your ${missingContact.join(", ")} so employers can reach you.`);
 
-  // 2. Summary present + reasonable length (200–600 chars).
+  // 2. Summary present + reasonable length (200, 600 chars).
   const summary = (p.summary || "").trim();
   const sLen = summary.length;
   let summaryOk, summaryTip;
-  if (!sLen) { summaryOk = false; summaryTip = "Add a short professional summary (aim for 200–600 characters)."; }
-  else if (sLen < 200) { summaryOk = false; summaryTip = `Your summary is short (${sLen} chars). Expand it toward 200–600 characters.`; }
+  if (!sLen) { summaryOk = false; summaryTip = "Add a short professional summary (aim for 200 to 600 characters)."; }
+  else if (sLen < 200) { summaryOk = false; summaryTip = `Your summary is short (${sLen} chars). Expand it toward 200 to 600 characters.`; }
   else if (sLen > 600) { summaryOk = false; summaryTip = `Your summary is long (${sLen} chars). Tighten it under 600 characters.`; }
   else { summaryOk = true; summaryTip = `Your summary is a good length (${sLen} characters).`; }
   add("summary", summaryOk, 1.5, "Summary is a good length", summaryTip);
@@ -1214,7 +1214,7 @@ function computeHealth() {
   } else { depthOk = true; depthTip = "Every experience entry has 2 or more bullet points."; }
   add("depth", depthOk, 2, "Each role has enough detail", depthTip);
 
-  // 4. Quantify — bullets lacking a number/metric.
+  // 4. Quantify. Bullets lacking a number/metric.
   const bullets = allBullets();
   const noMetric = bullets.filter((b) => !bulletHasMetric(b.text));
   let metricOk, metricTip;
@@ -1223,7 +1223,7 @@ function computeHealth() {
     metricOk = false;
     const sample = noMetric.slice(0, 3).map((b) => truncate(b.text, 40));
     metricTip = `Quantify these with a number, % or $: "${sample.join('", "')}"${noMetric.length > 3 ? `, +${noMetric.length - 3} more` : ""}.`;
-  } else { metricOk = true; metricTip = "Your bullets include concrete numbers — great."; }
+  } else { metricOk = true; metricTip = "Your bullets include concrete numbers. Great."; }
   add("metrics", metricOk, 1.5, "Bullets are quantified", metricTip);
 
   // 5. Strong action-verb openers. A bullet is "weak" if its first word isn't a
@@ -1253,7 +1253,7 @@ function computeHealth() {
   const skillsOk = skillCount >= 5;
   add("skills", skillsOk, 1, "Enough skills listed",
     skillsOk ? `You've listed ${skillCount} skills.`
-      : skillCount ? `Add more skills — you have ${skillCount}, aim for at least 5.`
+      : skillCount ? `Add more skills. You have ${skillCount}, aim for at least 5.`
         : "Add at least 5 relevant skills.");
 
   // 7. Overall content length — flag a very sparse resume.
@@ -1261,7 +1261,7 @@ function computeHealth() {
   const lengthOk = len >= 400;
   add("length", lengthOk, 1, "Resume has enough content",
     lengthOk ? "Your resume has a solid amount of content."
-      : "Your resume looks sparse — add more detail to your experience and summary.");
+      : "Your resume looks sparse. Add more detail to your experience and summary.");
 
   const totalWeight = checks.reduce((s, c) => s + c.weight, 0);
   const passedWeight = checks.reduce((s, c) => s + (c.ok ? c.weight : 0), 0);
@@ -1281,7 +1281,7 @@ function buildHealthPanel() {
   // route already provides an <h2> + subtitle, so this would be a duplicate).
   const selfhead = el("div", "panel-selfhead");
   selfhead.appendChild(txt("h3", null, "Resume Score"));
-  selfhead.appendChild(txt("p", "hint", "A quick on-device check of your resume against common recruiter and ATS expectations. Updates live as you edit — nothing leaves your device."));
+  selfhead.appendChild(txt("p", "hint", "A quick on-device check of your resume against common recruiter and ATS expectations. Updates live as you edit. Nothing leaves your device."));
   panel.appendChild(selfhead);
   const host = el("div"); host.id = "healthResult"; host.className = "health-result";
   markLiveRegion(host);
@@ -1471,13 +1471,13 @@ function shareScoreCard(btn) {
   try {
     canvas = renderScoreCard(computeHealth());
   } catch (e) {
-    if (msgHost) status(msgHost, "Couldn't build the card — try again.", "err");
+    if (msgHost) status(msgHost, "Couldn't build the card. Try again.", "err");
     return;
   }
   if (btn) { btn.disabled = true; btn.textContent = "Preparing…"; }
   const reset = () => { if (btn) { btn.disabled = false; btn.textContent = "Share my score"; } };
   canvas.toBlob(async (blob) => {
-    if (!blob) { reset(); if (msgHost) status(msgHost, "Couldn't build the card — try again.", "err"); return; }
+    if (!blob) { reset(); if (msgHost) status(msgHost, "Couldn't build the card. Try again.", "err"); return; }
     const filename = "localresume-score.png";
     try {
       // Feature-detect file sharing (navigator.canShare with a File) before
@@ -1847,21 +1847,21 @@ function placementForKeyword(word) {
     return {
       where: "Skills",
       insertToSkills: true,
-      tip: "Looks like a tool or technology — add it to your Skills if you genuinely use it.",
+      tip: "Looks like a tool or technology. Add it to your Skills if you genuinely use it.",
     };
   }
   if (EXPERIENCE_LIKE_TERMS.has(lw)) {
     return {
       where: "Experience",
       insertToSkills: false,
-      tip: "Reads as something you'd show in action — weave it into a relevant Experience bullet where it's true.",
+      tip: "Reads as something you'd show in action. Weave it into a relevant Experience bullet where it's true.",
     };
   }
   if (looksLikeSummaryTerm(lw)) {
     return {
       where: "Summary",
       insertToSkills: false,
-      tip: "Positioning term — consider reflecting it in your Summary if it fits your background.",
+      tip: "Positioning term. Consider reflecting it in your Summary if it fits your background.",
     };
   }
   // Default: unclear shape. Advise the Summary/Experience as the honest home for
@@ -1869,7 +1869,7 @@ function placementForKeyword(word) {
   return {
     where: "Experience or Summary",
     insertToSkills: false,
-    tip: "If this genuinely applies to you, work it into an Experience bullet or your Summary — only where it's true.",
+    tip: "If this genuinely applies to you, work it into an Experience bullet or your Summary, only where it's true.",
   };
 }
 
@@ -1889,7 +1889,7 @@ function addSkillFromTailor(term) {
 function buildJobMatchPanel() {
   const panel = el("div", "panel");
   panel.appendChild(txt("h3", null, "Match a job description"));
-  panel.appendChild(txt("p", "hint", "Paste a job description and we'll compare its key terms against your whole resume — all on this device. See what's already covered and what to add before you apply."));
+  panel.appendChild(txt("p", "hint", "Paste a job description and we'll compare its key terms against your whole resume, all on this device. See what's already covered and what to add before you apply."));
 
   // One-page fit indicator (FREE) — derived live from the rendered preview. Its
   // content is filled by refreshPageFit() once the preview is mounted, and kept
@@ -1967,7 +1967,7 @@ function renderJobMatchEmpty(host, msg) {
 function renderJobMatch(host, result) {
   host.innerHTML = "";
   if (!result.keywords.length) {
-    host.appendChild(txt("p", "hint", "No distinctive keywords found in that text — try pasting a fuller job description."));
+    host.appendChild(txt("p", "hint", "No distinctive keywords found in that text. Try pasting a fuller job description."));
     return;
   }
   const scoreWrap = el("div", "jd-score");
@@ -1996,7 +1996,7 @@ function renderJobMatch(host, result) {
     host.appendChild(grp);
   };
   chipGroup("Matched", result.matched, "matched", "check");
-  chipGroup("Missing — consider adding", result.missing, "missing", "plus");
+  chipGroup("Missing: consider adding", result.missing, "missing", "plus");
 
   // ── Tailor to this job (PRO) — placement hints for the missing terms ──
   // Free users keep the matched/missing lists above unchanged; the WHERE-to-add
@@ -2021,7 +2021,7 @@ function renderTailorSection(host, result) {
 
   if (!isPro) {
     grp.appendChild(txt("p", "jd-tailor-lock-note",
-      "Unlock Pro to see where to add each missing term — Skills, a specific experience bullet, or your Summary — plus one-tap adds for skills."));
+      "Unlock Pro to see where to add each missing term (Skills, a specific experience bullet, or your Summary), plus one-tap adds for skills."));
     const unlock = txt("button", "btn ghost sm", "Unlock Pro to see where to add these");
     unlock.type = "button";
     unlock.onclick = () => { try { showProModal(); } catch (e) { console.error(e); } };
@@ -2031,7 +2031,7 @@ function renderTailorSection(host, result) {
   }
 
   grp.appendChild(txt("p", "jd-tailor-intro",
-    "Where each missing term most naturally belongs. Only add what's genuinely true — nothing here is auto-written."));
+    "Where each missing term most naturally belongs. Only add what's genuinely true. Nothing here is auto-written."));
   const list = el("ul", "jd-tailor-list");
   result.missing.forEach((word) => {
     const place = placementForKeyword(word);
@@ -2105,14 +2105,14 @@ function renderProError(host, onRetry) {
   box.appendChild(txt("h4", "pro-error-title", "Something went wrong"));
   box.appendChild(txt("p", "pro-error-body",
     // "no charge was made just now" — scoped to THIS attempt; never a blanket "nothing was charged".
-    "If your card was charged, your Pro will unlock automatically on your next visit — otherwise no charge was made just now."));
+    "If your card was charged, your Pro will unlock automatically on your next visit. Otherwise no charge was made just now."));
 
   if (IS_NATIVE) {
     // On iOS the most common cause of this card is an already-owned purchase with an
     // unsynced receipt (fresh reinstall) — the fix is the Restore Purchases link sitting
     // just below on this same paywall, so point straight at it.
     box.appendChild(txt("p", "pro-error-body",
-      "Already bought Pro? Tap Restore Purchases below to bring it back — no new charge."));
+      "Already bought Pro? Tap Restore Purchases below to bring it back, no new charge."));
   }
 
   const support = el("p", "pro-error-support");
@@ -2374,9 +2374,9 @@ async function doExport() {
     const bytes = await pdf.save();
     const safeName = (state.personal.name || "resume").replace(/[^\w.-]+/g, "-").slice(0, 40);
     await downloadPdfBytes(bytes, `${safeName}-resume.pdf`);
-    status(msgHost, "PDF ready — saved to your downloads.", "ok");
+    status(msgHost, "PDF ready. Saved to your downloads.", "ok");
   } catch (e) {
-    status(msgHost, "Couldn't export that — try again. Your data on this device is unaffected.", "err");
+    status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
 }
 // Safari (desktop and iOS) treats a blob: URL typed "application/pdf" as
@@ -2484,7 +2484,7 @@ async function doExportPlainText() {
     await downloadPdfBytes(bytes, `${resumeFileBase()}-resume.txt`);
     status(msgHost, "Plain-text resume saved to your downloads.", "ok");
   } catch (e) {
-    status(msgHost, "Couldn't export that — try again. Your data on this device is unaffected.", "err");
+    status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
 }
 
@@ -2494,7 +2494,7 @@ async function doCopyPlainText(btn) {
   const msgHost = $("#editorMsg");
   let text;
   try { text = buildResumePlainText(state); }
-  catch { status(msgHost, "Couldn't build the text — try again.", "err"); return; }
+  catch { status(msgHost, "Couldn't build the text. Try again.", "err"); return; }
   try {
     if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no clipboard");
     await navigator.clipboard.writeText(text);
@@ -2505,7 +2505,7 @@ async function doCopyPlainText(btn) {
     }
     status(msgHost, "Plain-text resume copied to your clipboard.", "ok");
   } catch {
-    status(msgHost, "Couldn't copy automatically — use “Download .txt” instead.", "info");
+    status(msgHost, "Couldn't copy automatically. Use “Download .txt” instead.", "info");
   }
 }
 
@@ -2553,11 +2553,11 @@ function buildResumeDocx(st) {
   const p = st.personal || {};
   const body = [];
 
-  // Name — large bold. Falls back so an empty resume still produces a valid file.
+  // Name. Large bold. Falls back so an empty resume still produces a valid file.
   body.push(docxParagraph((p.name || "").trim() || "Your name", { bold: true, size: 44, spaceAfter: 40 }));
   if (p.role && p.role.trim()) body.push(docxParagraph(p.role, { bold: true, size: 24, color: "047857", spaceAfter: 40 }));
 
-  // Contact line — single joined paragraph (ATS parsers prefer one line).
+  // Contact line. Single joined paragraph (ATS parsers prefer one line).
   const contact = [p.email, p.phone, p.location, p.website].filter((v) => v && v.trim());
   if (contact.length) body.push(docxParagraph(contact.join("  |  "), { size: 18, color: "595959", spaceAfter: 120 }));
 
@@ -2579,7 +2579,7 @@ function buildResumeDocx(st) {
       const subParts = [exp.location, dateLine].filter((v) => v && v.trim());
       if (subParts.length) body.push(docxParagraph(subParts.join("  |  "), { size: 18, color: "595959", spaceAfter: 40 }));
       (exp.bullets || []).filter((b) => b && b.trim()).forEach((b) => {
-        // Literal "• " prefix — most ATS-safe bullet form.
+        // Literal "• " prefix, most ATS-safe bullet form.
         body.push(docxParagraph("• " + b.trim(), { size: 20, spaceAfter: 20 }));
       });
       body.push(docxParagraph("", { size: 12, spaceAfter: 80 })); // gap between entries
@@ -2680,7 +2680,7 @@ async function doExportDocx(ev) {
       // Remember the intent so a successful unlock/restore runs the export.
       setPendingIntent(() => doExportDocx());
       const jdContext = (jdLastResult && !$(".modal-backdrop.pro-paywall"))
-        ? "You checked this job — export in the format ATS read best." : null;
+        ? "You checked this job. Export in the format ATS read best." : null;
       showProModal(jdContext ? { contextLine: jdContext } : undefined);
       return;
     }
@@ -2691,9 +2691,9 @@ async function doExportDocx(ev) {
     // Same octet-stream download path the PDF export uses (Safari won't hijack
     // an octet-stream blob), with the .docx extension driving the file type.
     await downloadPdfBytes(bytes, `${safeName}-resume.docx`);
-    status(msgHost, "Word (.docx) ready — saved to your downloads.", "ok");
+    status(msgHost, "Word (.docx) ready. Saved to your downloads.", "ok");
   } catch (e) {
-    status(msgHost, "Couldn't export that — try again. Your data on this device is unaffected.", "err");
+    status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
 }
 
@@ -2774,7 +2774,7 @@ async function requestSaveVersion(ev) {
     if (!pro) {
       // Resume the save flow (re-checking the gate) after a successful unlock.
       setPendingIntent(() => requestSaveVersion());
-      showProModal({ contextLine: "Save this as a tailored version — one master résumé, a tuned copy for every job." });
+      showProModal({ contextLine: "Save this as a tailored version: one master résumé, a tuned copy for every job." });
       return;
     }
   }
@@ -2816,7 +2816,7 @@ function deleteVersion(version) {
 function loadVersion(version) {
   showConfirmModal(
     "Load this version?",
-    `This replaces the résumé you're editing with “${version.name}”. Any unsaved changes to the current résumé will be lost — save them as a version first if you want to keep them.`,
+    `This replaces the résumé you're editing with “${version.name}”. Any unsaved changes to the current résumé will be lost. Save them as a version first if you want to keep them.`,
     "Load version",
     () => applyVersionSnapshot(version)
   );
@@ -2831,12 +2831,12 @@ function promptVersionName(title, initial, onConfirm) {
   const modal = el("div", "modal pro-modal");
   const heading = txt("h3", null, title); heading.id = "versionNameHeading";
   modal.appendChild(heading);
-  modal.appendChild(txt("p", "hint", "Give it a name you'll recognize, e.g. “Acme — Product Designer”."));
+  modal.appendChild(txt("p", "hint", "Give it a name you'll recognize, e.g. “Product Designer at Acme”."));
   const input = document.createElement("input");
   input.type = "text";
   input.className = "version-name-input";
   input.maxLength = 80;
-  input.placeholder = "Acme — Product Designer";
+  input.placeholder = "Product Designer at Acme";
   input.value = initial || "";
   input.setAttribute("aria-label", "Version name");
   input.setAttribute("autocomplete", "off"); input.spellcheck = false;
@@ -2883,7 +2883,7 @@ function buildVersionsPanel() {
   if (!pro) head.appendChild(txt("span", "versions-pro-tag", "Pro"));
   panel.appendChild(head);
   panel.appendChild(txt("p", "hint versions-sub",
-    "Keep one master résumé and save a tuned copy for every job — switch between them anytime."));
+    "Keep one master résumé and save a tuned copy for every job. Switch between them anytime."));
 
   const saveBtn = txt("button", "btn ghost sm versions-save", "Save current as a new version");
   saveBtn.type = "button";
@@ -2996,20 +2996,20 @@ const SUPPORT_EMAIL = "support@localresumeapp.com";
 // Every use is `if (IS_NATIVE) {…} else {…exact existing web copy…}` so the live web build is
 // byte-for-byte unchanged.
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-const REFUND_EXPECTATION = "30-day money-back guarantee. Email us and a real person reviews it — no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5–10 business days to appear on your statement.";
+const REFUND_EXPECTATION = "30-day money-back guarantee. Email us and a real person reviews it, no forms, no runaround. Once approved, your refund goes back to your original payment method and takes about 5 to 10 business days to appear on your statement.";
 // Builds the pre-filled mailto: URL. The restore code (if any on this device)
 // is auto-inserted so support can find the purchase; a null code is stated
 // plainly rather than left blank.
 function buildRefundMailto() {
   let code = null;
   try { code = Billing.getRestoreCode(); } catch { code = null; }
-  const subject = "Refund request — LocalResume Pro";
+  const subject = "Refund request: LocalResume Pro";
   const body =
     "Hi LocalResume team,\n\n" +
     "I'd like to request a refund for my LocalResume Pro purchase.\n\n" +
     "My restore code: " + (code || "(no code on this device)") + "\n" +
     "Reason (optional): \n\n" +
-    "Thanks — I understand a real person will review this and reply.\n";
+    "Thanks. I understand a real person will review this and reply.\n";
   return "mailto:" + SUPPORT_EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
 // ── Graceful, non-destructive access-stop (Pro revoked / refunded) ───────
@@ -3062,7 +3062,7 @@ function showAccessEndedBanner() {
   // Says WHY (a refund is the one thing that verifiably revokes access) and gives an
   // escape hatch, so a mistaken revocation never dead-ends on this banner.
   b.appendChild(txt("span", "access-ended-text",
-    "Your LocalResume Pro access has ended — this usually follows a refund. If it's unexpected, email support@localresumeapp.com and we'll sort it out. Everything you made is safe and still here, and every free feature keeps working — you're always welcome back."));
+    "Your LocalResume Pro access has ended. This usually follows a refund. If it's unexpected, email support@localresumeapp.com and we'll sort it out. Everything you made is safe and still here, and every free feature keeps working. You're always welcome back."));
   const closeBtn = txt("button", "access-ended-close", "×"); closeBtn.type = "button";
   closeBtn.setAttribute("aria-label", "Dismiss");
   closeBtn.onclick = () => b.remove();
@@ -3275,7 +3275,7 @@ function showLicenseCardModal() {
   const modal = el("div", "modal pro-modal license-modal");
   const lcHeading = txt("h3", null, "Your Pro license card"); lcHeading.id = "lcHeading";
   modal.appendChild(lcHeading);
-  modal.appendChild(txt("p", "hint", "Download or print this card and keep it somewhere safe — it's the key that restores your Pro purchase on any device."));
+  modal.appendChild(txt("p", "hint", "Download or print this card and keep it somewhere safe. It's the key that restores your Pro purchase on any device."));
   const canvas = licenseCardCanvas(code);
   modal.appendChild(canvas);
   const dlBtn = txt("button", "btn ghost", "Download card (PNG)"); dlBtn.type = "button";
@@ -3301,22 +3301,22 @@ function showLicenseCardModal() {
 function showRestoreCodeModal(code) {
   const backdrop = el("div", "modal-backdrop");
   const modal = el("div", "modal pro-modal license-modal");
-  const rcHeading = txt("h3", null, "You're Pro — save your restore code"); rcHeading.id = "rcHeading";
+  const rcHeading = txt("h3", null, "You're Pro. Save your restore code"); rcHeading.id = "rcHeading";
   modal.appendChild(rcHeading);
-  modal.appendChild(txt("p", "hint", "This code unlocks Pro again on another device or browser. Save it somewhere safe now — since there are no accounts, it's the key you'll use next time."));
+  modal.appendChild(txt("p", "hint", "This code unlocks Pro again on another device or browser. Save it somewhere safe now. Since there are no accounts, it's the key you'll use next time."));
   const receiptNote = el("p", "hint");
-  receiptNote.append("Keep your receipt email too — it's your proof of purchase. Questions? ");
+  receiptNote.append("Keep your receipt email too. It's your proof of purchase. Questions? ");
   const rcSupport = txt("a", null, "support@localresumeapp.com");
   rcSupport.href = "mailto:support@localresumeapp.com";
   receiptNote.appendChild(rcSupport);
   modal.appendChild(receiptNote);
   const codeBox = el("div", "restore-code-box");
-  const codeText = txt("code", "restore-code-value", code || "—");
+  const codeText = txt("code", "restore-code-value", code || "…");
   codeBox.appendChild(codeText);
   const copyBtn = txt("button", "btn ghost sm", "Copy"); copyBtn.type = "button";
   copyBtn.onclick = async () => {
     try { await navigator.clipboard.writeText(code); copyBtn.textContent = "Copied!"; }
-    catch { copyBtn.textContent = "Couldn't copy — select and copy manually"; }
+    catch { copyBtn.textContent = "Couldn't copy. Select and copy manually"; }
     setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
   };
   codeBox.appendChild(copyBtn);
@@ -3374,13 +3374,13 @@ function showCelebrationModal(code, alreadyOwned) {
   if (code) {
     // Normal path: reveal the save-your-code / license-card section inline.
     modal.appendChild(txt("h3", null, "Save your restore code"));
-    modal.appendChild(txt("p", "hint", "This code unlocks Pro again on another device or browser. Save it somewhere safe now — since there are no accounts, it's the key you'll use next time."));
+    modal.appendChild(txt("p", "hint", "This code unlocks Pro again on another device or browser. Save it somewhere safe now. Since there are no accounts, it's the key you'll use next time."));
     const codeBox = el("div", "restore-code-box");
     codeBox.appendChild(txt("code", "restore-code-value", code));
     const copyBtn = txt("button", "btn ghost sm", "Copy"); copyBtn.type = "button";
     copyBtn.onclick = async () => {
       try { await navigator.clipboard.writeText(code); copyBtn.textContent = "Copied!"; }
-      catch { copyBtn.textContent = "Couldn't copy — select and copy manually"; }
+      catch { copyBtn.textContent = "Couldn't copy. Select and copy manually"; }
       setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
     };
     codeBox.appendChild(copyBtn);
@@ -3399,7 +3399,7 @@ function showCelebrationModal(code, alreadyOwned) {
   } else if (IS_NATIVE) {
     // Apple IAP mints no restore CODE — cross-device restore is handled by the Apple Account +
     // "Restore Purchases", so skip the mint section entirely and show a clean success.
-    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device — and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
+    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device, and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
     const doneBtn = txt("button", "btn big", "Done"); doneBtn.type = "button";
     doneBtn.onclick = () => { backdrop.remove(); refreshAfterProChange(); };
     const actions = el("div", "pro-actions"); actions.appendChild(doneBtn);
@@ -3415,7 +3415,7 @@ function showCelebrationModal(code, alreadyOwned) {
   } else {
     // Amber self-heal path: paid, but code-mint failed. Honest, never silent.
     const note = el("div", "amber-note");
-    note.appendChild(document.createTextNode("One thing — we couldn't create your restore code just now. Pro already works on this browser. Tap to create your code for other devices."));
+    note.appendChild(document.createTextNode("One thing. We couldn't create your restore code just now. Pro already works on this browser. Tap to create your code for other devices."));
     const mintBtn = txt("button", "btn", "Create my restore code"); mintBtn.type = "button";
     const mintMsg = el("div", "pro-msg"); markLiveRegion(mintMsg);
     mintBtn.onclick = async () => {
@@ -3428,7 +3428,7 @@ function showCelebrationModal(code, alreadyOwned) {
         refreshAfterProChange();
       } else {
         mintBtn.disabled = false; mintBtn.textContent = "Create my restore code";
-        status(mintMsg, "No luck yet — Pro still works here; we'll offer again next visit, and support@localresumeapp.com + your receipt always work.", "info");
+        status(mintMsg, "No luck yet. Pro still works here; we'll offer again next visit, and support@localresumeapp.com + your receipt always work.", "info");
       }
     };
     note.appendChild(mintBtn);
@@ -3477,7 +3477,7 @@ function handleUnlockSuccess(code, alreadyOwned) {
 // failure. Reassure, give them their restore code now, and quietly promote to a full
 // unlock the moment the entitlement lands (no manual reload needed).
 function handlePurchasePending(restoreCode, message) {
-  const msg = message || "Your payment went through — your Pro is unlocking now. If it doesn't appear in a moment, reload this page.";
+  const msg = message || "Your payment went through. Your Pro is unlocking now. If it doesn't appear in a moment, reload this page.";
   showToast(msg); // role=status aria-live — surfaces the reassurance visually and to AT
   if (restoreCode) showRestoreCodeModal(restoreCode); // they paid; hand over their key straight away
   let tries = 0;
@@ -3500,7 +3500,7 @@ function showNoCodeSelfHealModal() {
     // Apple IAP mints no restore CODE — cross-device restore is handled by the Apple Account +
     // "Restore Purchases", so skip the mint flow and show a clean success instead.
     modal.appendChild(txt("h3", null, "You're Pro"));
-    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device — and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
+    modal.appendChild(txt("p", "hint", "Pro is unlocked on this device, and it restores free on your other Apple devices. Just tap “Restore Purchases” there, signed in with the same Apple Account."));
     const doneBtn = txt("button", "btn big", "Done"); doneBtn.type = "button";
     doneBtn.onclick = () => { backdrop.remove(); refreshAfterProChange(); };
     const actions = el("div", "pro-actions"); actions.appendChild(doneBtn);
@@ -3521,7 +3521,7 @@ function showNoCodeSelfHealModal() {
     let res;
     try { res = await Billing.mintRestoreCode(); } catch { res = { ok: false, restoreCode: null }; }
     if (res && res.ok && res.restoreCode) { backdrop.remove(); showRestoreCodeModal(res.restoreCode); refreshAfterProChange(); }
-    else { mintBtn.disabled = false; mintBtn.textContent = "Create my restore code"; status(mintMsg, "No luck yet — Pro still works here; we'll offer again next visit, and support@localresumeapp.com + your receipt always work.", "info"); }
+    else { mintBtn.disabled = false; mintBtn.textContent = "Create my restore code"; status(mintMsg, "No luck yet. Pro still works here; we'll offer again next visit, and support@localresumeapp.com + your receipt always work.", "info"); }
   };
   note.appendChild(mintBtn);
   const doneBtn = txt("button", "btn ghost", "Done"); doneBtn.type = "button";
@@ -3550,13 +3550,13 @@ function showRestoreEntryModal() {
   goBtn.onclick = async () => {
     goBtn.disabled = true; goBtn.textContent = "Checking…";
     let res;
-    try { res = await Billing.restoreWithCode(formatRestoreCode(input.value)); } catch { res = { ok: false, error: "Couldn't restore — try again." }; }
+    try { res = await Billing.restoreWithCode(formatRestoreCode(input.value)); } catch { res = { ok: false, error: "Couldn't restore. Try again." }; }
     if (res.ok) { backdrop.remove(); onRestoreSuccess(); }
     else {
       goBtn.disabled = false; goBtn.textContent = "Restore";
       status(msgHost, res.offline
-        ? "You're offline — restoring Pro needs a connection to verify your code. Everything else works offline."
-        : (res.error || "Couldn't restore — try again."), res.offline ? "info" : "err");
+        ? "You're offline. Restoring Pro needs a connection to verify your code. Everything else works offline."
+        : (res.error || "Couldn't restore. Try again."), res.offline ? "info" : "err");
     }
   };
   const closeBtn = txt("button", "btn ghost", "Cancel"); closeBtn.type = "button";
@@ -3583,7 +3583,7 @@ function showRestoreEntryModal() {
 // the user was mid-way through when they went to restore).
 function onRestoreSuccess() {
   refreshAfterProChange();
-  showToast("Welcome back — Pro is unlocked on this device.");
+  showToast("Welcome back. Pro is unlocked on this device.");
   runPendingIntent();
 }
 
@@ -3615,14 +3615,14 @@ function applyNativePriceToUnlockCard() {
     const amt = card.querySelector(".unlock-pro-price");
     if (p) {
       if (amt) amt.textContent = p + " · one-time";
-      card.setAttribute("aria-label", "Unlock LocalResume Pro — " + p + " one-time");
+      card.setAttribute("aria-label", "Unlock LocalResume Pro, " + p + " one-time");
       return;
     }
     if (!IS_NATIVE) return; // web genuinely bills the USD price already in the markup
     // Live price missing (IAP not approved yet → sandbox has no price). Keep the real store
     // price visible (matches the static markup) instead of showing "Price unavailable".
     if (amt) amt.textContent = "$12.99 · one-time";
-    card.setAttribute("aria-label", "Unlock LocalResume Pro — $12.99 one-time");
+    card.setAttribute("aria-label", "Unlock LocalResume Pro, $12.99 one-time");
   });
 }
 
@@ -3659,24 +3659,24 @@ function showProModal(opts) {
   const list = el("ul", "pro-features");
   // Outcome-framed benefit bullets (copy refresh).
   [
-    "Save unlimited tailored versions — keep one master résumé and a tuned copy for every job.",
-    "Export to Word (.docx) — the format ATS and recruiters actually ask for",
+    "Save unlimited tailored versions. Keep one master résumé and a tuned copy for every job.",
+    "Export to Word (.docx), the format ATS and recruiters actually ask for",
     "Cover-letter builder, matched to your resume, with PDF export",
-    "Tailor to any job — see exactly where to add each missing keyword (Skills, a bullet, or your summary), with one-tap adds.",
+    "Tailor to any job. See exactly where to add each missing keyword (Skills, a bullet, or your summary), with one-tap adds.",
   ].forEach((f) => list.appendChild(txt("li", null, f)));
   modal.appendChild(list);
   // Durable one-time reassurance line.
-  modal.appendChild(txt("p", "pro-reassure", "One purchase, not a subscription — for every resume and cover letter you make. You won't be charged again."));
+  modal.appendChild(txt("p", "pro-reassure", "Pro covers every resume and cover letter you make."));
   if (IS_NATIVE) {
     // Apple IAP: no Stripe, no email receipt, no "your statement" (Apple bills), no self-run
     // money-back (refunds go through Apple's Report a Problem). One clean line replaces all three.
-    modal.appendChild(txt("p", "hint", "Payment is handled securely by the App Store, with the Apple Account you already use — it restores free on your other Apple devices."));
+    modal.appendChild(txt("p", "hint", "Payment is handled securely by the App Store, with the Apple Account you already use. It restores free on your other Apple devices."));
   } else {
     // "(via RevenueCat)" matches the checkout window's own header, so the buyer never
     // meets a payment name mid-payment that the paywall didn't introduce first.
-    modal.appendChild(txt("p", "hint", "Secure checkout by Stripe (via RevenueCat). You'll enter an email for your receipt only — it's not an account, and we never see your card."));
+    modal.appendChild(txt("p", "hint", "Secure checkout by Stripe (via RevenueCat). You'll enter an email for your receipt only. It's not an account, and we never see your card."));
     const reassure = el("p", "hint");
-    reassure.append("30-day money-back guarantee — email ");
+    reassure.append("30-day money-back guarantee. Email ");
     const supportLink = txt("a", null, "support@localresumeapp.com");
     supportLink.href = "mailto:support@localresumeapp.com";
     reassure.appendChild(supportLink);
@@ -3688,7 +3688,7 @@ function showProModal(opts) {
     // Private-browsing safety: this browser won't remember the purchase after the visit —
     // say so once, before they buy, so the receipt + restore code get saved somewhere real.
     if (!storageProbeOk()) {
-      modal.appendChild(txt("p", "hint", "Heads up — this browser isn't saving data, so keep your receipt and restore code somewhere safe after you buy."));
+      modal.appendChild(txt("p", "hint", "Heads up. This browser isn't saving data, so keep your receipt and restore code somewhere safe after you buy."));
     }
   }
   const msgHost = el("div", "pro-msg"); markLiveRegion(msgHost);
@@ -3737,12 +3737,12 @@ function showProModal(opts) {
     if (res.inFlight) {
       // A purchase from a moment ago is still settling (entitlement attaching). Don't open a
       // second checkout or show an error — reassure, and Pro unlocks itself when it lands.
-      status(msgHost, "Your purchase is still going through — give it a moment and Pro will unlock automatically.", "info");
+      status(msgHost, "Your purchase is still going through. Give it a moment and Pro will unlock automatically.", "info");
     } else if (res.cancelled) {
-      status(msgHost, "No charge was made — Pro will be here whenever you're ready.", "info");
+      status(msgHost, "No charge was made. Pro will be here whenever you're ready.", "info");
     } else if (res.offline) {
       // "no charge was made just now" — scoped to THIS attempt; never a blanket "nothing was charged".
-      status(msgHost, "You're offline — buying Pro needs a connection for the secure checkout. Everything else works offline, and no charge was made just now.", "info");
+      status(msgHost, "You're offline. Buying Pro needs a connection for the secure checkout. Everything else works offline, and no charge was made just now.", "info");
     } else if (res.pending) {
       // PAID — the charge SUCCEEDED; the entitlement is only still attaching (a few seconds).
       // Never show the "purchase didn't start / you weren't charged" state or a re-buy button to
@@ -3770,7 +3770,7 @@ function showProModal(opts) {
       if (res && res.ok) { backdrop.remove(); refreshAfterProChange(); runPendingIntent(); }
       else {
         restoreLink.disabled = false; restoreLink.textContent = prev;
-        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", "info");
+        status(msgHost, "No previous purchase found. Make sure you're signed in with the Apple Account you bought Pro with. Bought on the web? Web and App Store purchases are separate. Your code works in your browser.", "info");
       }
     };
   } else {
@@ -3862,9 +3862,9 @@ async function doExportCoverLetter() {
     const bytes = await pdf.save();
     const safeName = (state.personal.name || "cover-letter").replace(/[^\w.-]+/g, "-").slice(0, 40);
     await downloadPdfBytes(bytes, `${safeName}-cover-letter.pdf`);
-    status(msgHost, "Cover letter PDF ready — saved to your downloads.", "ok");
+    status(msgHost, "Cover letter PDF ready. Saved to your downloads.", "ok");
   } catch (e) {
-    status(msgHost, "Couldn't export that — try again. Your data on this device is unaffected.", "err");
+    status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
 }
 
@@ -3892,8 +3892,8 @@ function showVaultMessageModal(message) {
 function showProRestoreFailedAfterImportModal(message, title) {
   const backdrop = el("div", "modal-backdrop");
   const modal = el("div", "modal pro-modal");
-  modal.appendChild(txt("h3", null, title || "Backup restored — Pro didn't unlock"));
-  modal.appendChild(txt("p", "hint", message || "Your data imported and is safe. The Pro code saved in this backup didn't unlock Pro on this browser — it may be a temporary connection issue, or the code is no longer active. You can enter your restore code to try again."));
+  modal.appendChild(txt("h3", null, title || "Backup restored. Pro didn't unlock"));
+  modal.appendChild(txt("p", "hint", message || "Your data imported and is safe. The Pro code saved in this backup didn't unlock Pro on this browser. It may be a temporary connection issue, or the code is no longer active. You can enter your restore code to try again."));
   const goBtn = txt("button", "btn big", "Enter restore code"); goBtn.type = "button";
   goBtn.onclick = () => { backdrop.remove(); showRestoreEntryModal(); };
   const closeBtn = txt("button", "btn ghost", "Not now"); closeBtn.type = "button";
@@ -3952,11 +3952,11 @@ function capVersionsForFreeTier() {
 }
 function importVault(file) {
   const reader = new FileReader();
-  reader.onerror = () => showVaultMessageModal("Couldn't read that file — try again.");
+  reader.onerror = () => showVaultMessageModal("Couldn't read that file. Try again.");
   reader.onload = () => {
     let payload;
     try { payload = JSON.parse(String(reader.result)); }
-    catch { showVaultMessageModal("That file couldn't be read as a backup — it isn't valid JSON."); return; }
+    catch { showVaultMessageModal("That file couldn't be read as a backup. It isn't valid JSON."); return; }
     if (!payload || typeof payload !== "object" || payload.app !== "localresume") {
       const other = payload && typeof payload.app === "string" && payload.app.trim() ? payload.app.trim() : null;
       showVaultMessageModal(other ? `That backup is from ${other}.` : "That file doesn't look like a LocalResume backup.");
@@ -3982,7 +3982,7 @@ function importVault(file) {
           // at the one recovery path that exists on this platform.
           showVaultMessageModal(
             (trimmed
-              ? "Your data imported. The free plan keeps your first saved version — the rest stay safe in your backup file, ready to import again once Pro is unlocked. "
+              ? "Your data imported. The free plan keeps your first saved version. The rest stay safe in your backup file, ready to import again once Pro is unlocked. "
               : "Your data imported. ")
             + (payload.proRestoreCode
               ? "Pro comes back with Restore Purchases on iPhone and iPad."
@@ -4002,7 +4002,7 @@ function importVault(file) {
           persistNow();
           buildEditor();
           showProRestoreFailedAfterImportModal(trimmed
-            ? "Your data imported. The Pro code in this backup isn't in the right format, so the free plan kept your first saved version. The rest are still in your backup file — import it again after you restore Pro to bring them back. You can enter your restore code to try again."
+            ? "Your data imported. The Pro code in this backup isn't in the right format, so the free plan kept your first saved version. The rest are still in your backup file. Import it again after you restore Pro to bring them back. You can enter your restore code to try again."
             : "Your data imported and is safe. The Pro code in this backup isn't in the right format. You can enter your restore code to try again.");
           return;
         }
@@ -4012,7 +4012,7 @@ function importVault(file) {
         if (res && res.ok) {
           persistNow();
           refreshAfterProChange();
-          status($("#editorMsg"), "Backup restored — Pro unlocked from your saved code.", "ok");
+          status($("#editorMsg"), "Backup restored. Pro unlocked from your saved code.", "ok");
           return;
         }
         // The backup carried a Pro code but it didn't restore. Only a CONFIRMED "no active Pro"
@@ -4024,7 +4024,7 @@ function importVault(file) {
           persistNow();
           buildEditor();
           showProRestoreFailedAfterImportModal(trimmed
-            ? "Your data imported. That code doesn't have an active Pro purchase, so the free plan kept your first saved version. The rest are still in your backup file — import it again after you restore Pro to bring them back. You can enter your restore code to try again."
+            ? "Your data imported. That code doesn't have an active Pro purchase, so the free plan kept your first saved version. The rest are still in your backup file. Import it again after you restore Pro to bring them back. You can enter your restore code to try again."
             : "Your data imported and is safe. The Pro code saved in this backup doesn't have an active Pro purchase. You can enter your restore code to try again.");
           return;
         }
@@ -4033,7 +4033,7 @@ function importVault(file) {
         // and say so plainly. (Saving NEW versions stays Pro-gated regardless.)
         persistNow();
         buildEditor();
-        showProRestoreFailedAfterImportModal("Your data imported — nothing was removed. We couldn't confirm Pro just now. You can enter your restore code to try again in a moment.");
+        showProRestoreFailedAfterImportModal("Your data imported. Nothing was removed. We couldn't confirm Pro just now. You can enter your restore code to try again in a moment.");
         return;
       }
       // Free tier (no code, or the code path above already returned): imports can't exceed
@@ -4044,7 +4044,7 @@ function importVault(file) {
       buildEditor();
       if (trimmed) {
         showProRestoreFailedAfterImportModal(
-          "Your data imported. The free plan keeps your first saved version — the rest stay safe in your backup file. If you bought Pro, enter your restore code, then import this file again to bring them back.",
+          "Your data imported. The free plan keeps your first saved version. The rest stay safe in your backup file. If you bought Pro, enter your restore code, then import this file again to bring them back.",
           "Backup restored");
         return;
       }
@@ -4109,7 +4109,7 @@ if (IS_NATIVE) {
     catch (e) { console.error("LocalResume: restore threw", e); res = { ok: false }; }
     footerRestore.disabled = false; footerRestore.textContent = prev;
     if (res && res.ok) { refreshAfterProChange(); runPendingIntent(); showToast("Pro restored on this device."); }
-    else { showToast("No previous purchase found for this Apple Account. Bought on the web? Web and App Store purchases are separate — your code works in your browser.", 9000); }
+    else { showToast("No previous purchase found for this Apple Account. Bought on the web? Web and App Store purchases are separate. Your code works in your browser.", 9000); }
   };
 } else {
   $("#footerRestoreLink").onclick = () => showRestoreEntryModal();
@@ -4182,7 +4182,7 @@ function maybeShowSaveNag() {
   try { ack = localStorage.getItem(CODE_ACK_KEY); } catch { /* treat as un-acked */ }
   if (!code || !pro || ack === "1" || $("#saveNagBanner")) return;
   const banner = el("div", "save-nag"); banner.id = "saveNagBanner";
-  banner.appendChild(txt("span", "save-nag-text", "Keep Pro safe — save your license card so you can restore it anytime."));
+  banner.appendChild(txt("span", "save-nag-text", "Keep Pro safe. Save your license card so you can restore it anytime."));
   const viewBtn = txt("button", "save-nag-view", "View card"); viewBtn.type = "button";
   viewBtn.onclick = () => showLicenseCardModal();
   const closeBtn = txt("button", "save-nag-close", "×"); closeBtn.type = "button";
@@ -4201,7 +4201,7 @@ function maybeShowSelfHealNag() {
   if (!needsHeal) { if (banner) banner.remove(); return; }
   if (banner) return; // already shown
   const b = el("div", "selfheal-nag"); b.id = "selfHealBanner";
-  b.appendChild(txt("span", "selfheal-text", "You're Pro on this browser — create your restore code so you can unlock other devices too."));
+  b.appendChild(txt("span", "selfheal-text", "You're Pro on this browser. Create your restore code so you can unlock other devices too."));
   const createBtn = txt("button", "selfheal-btn", "Create code"); createBtn.type = "button";
   const msg = el("span"); msg.className = "selfheal-msg"; markLiveRegion(msg);
   createBtn.onclick = async () => {
@@ -4214,7 +4214,7 @@ function maybeShowSelfHealNag() {
       refreshAfterProChange();
     } else {
       createBtn.disabled = false; createBtn.textContent = "Create code";
-      msg.textContent = " Couldn't create it just now — we'll offer again next visit.";
+      msg.textContent = " Couldn't create it just now. We'll offer again next visit.";
     }
   };
   b.append(createBtn, msg);
@@ -4388,7 +4388,7 @@ vaultInput.addEventListener("change", () => {
       box.appendChild(txt("div", "restore-code-value", existing));
       modal.appendChild(box);
       modal.appendChild(txt("p", "hint",
-        "The link you opened restores a different code. Switching replaces the code saved on this device — if you haven't saved your license card, the current code can't be recovered here."));
+        "The link you opened restores a different code. Switching replaces the code saved on this device. If you haven't saved your license card, the current code can't be recovered here."));
     } else {
       modal.appendChild(txt("p", "hint",
         "Pro is already unlocked on this device, but no restore code has been saved here yet. The link you opened would move this device onto a different purchase, and this one would be lost. Keep this device's Pro and save a code for it from the Pro menu."));

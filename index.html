@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://da08ctfrofx1b.cloudfront.net; font-src 'self'; connect-src 'self' https://api.revenuecat.com https://e.revenue.cat https://js.stripe.com; worker-src 'self' blob:; frame-src https://js.stripe.com; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>LocalResume — Private Resume Builder</title>
-  <meta name="description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <title>LocalResume: Private Resume Builder</title>
+  <meta name="description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details are never uploaded. No account needed.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
@@ -18,21 +18,21 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="LocalResume">
   <meta property="og:url" content="https://localresumeapp.com/">
-  <meta property="og:title" content="LocalResume — Build a private, ATS-friendly résumé">
-  <meta property="og:description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <meta property="og:title" content="LocalResume: Build a private, ATS-friendly résumé">
+  <meta property="og:description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details are never uploaded. No account needed.">
   <meta property="og:image" content="https://localresumeapp.com/assets/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="LocalResume — private, on your device">
+  <meta property="og:image:alt" content="LocalResume: private, on your device">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="LocalResume — Build a private, ATS-friendly résumé">
-  <meta name="twitter:description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details never leave your device — no account, no subscriptions.">
+  <meta name="twitter:title" content="LocalResume: Build a private, ATS-friendly résumé">
+  <meta name="twitter:description" content="Build a polished, ATS-friendly resume right on your device. Your career history and contact details are never uploaded. No account needed.">
   <meta name="twitter:image" content="https://localresumeapp.com/assets/og-image.png">
   <!-- Sets data-theme on <html> before styles paint, so there's no flash of the
        wrong theme. CSP-safe (same-origin 'self', no inline script). -->
-  <script src="theme.js?v=9b807bf9f1"></script>
-  <link rel="stylesheet" href="styles.css?v=9b807bf9f1">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LocalResume","url":"https://localresumeapp.com/","description":"Build a polished, ATS-friendly resume right on your device. Your career history and contact details never leave your device — no account, no subscriptions.","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs on your device — no account, no upload.","publisher":{"@type":"Organization","name":"LocalResume"}}</script>
+  <script src="theme.js?v=dfb3689268"></script>
+  <link rel="stylesheet" href="styles.css?v=dfb3689268">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LocalResume","url":"https://localresumeapp.com/","description":"Build a polished, ATS-friendly resume right on your device. Your career history and contact details are never uploaded. No account needed.","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript. Runs on your device — no account, no upload.","publisher":{"@type":"Organization","name":"LocalResume"}}</script>
 </head>
 <body>
   <a class="skip-link" href="#appMain">Skip to content</a>
@@ -64,7 +64,7 @@
            false, and hides it again on any Pro-status change (purchase/restore).
            The button calls the app's existing showProModal() opener. -->
       <button type="button" class="unlock-pro-card hidden" id="unlockProCard"
-              aria-label="Unlock LocalResume Pro — $12.99 one-time">
+              aria-label="Unlock LocalResume Pro, $12.99 one-time">
         <span class="unlock-pro-head">
           <svg class="unlock-pro-glyph" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8l-1.6 10.5a1 1 0 0 1-1 .85H5.6a1 1 0 0 1-1-.85L3 8z"/></svg>
           <span class="unlock-pro-title">Unlock Pro</span>
@@ -103,21 +103,21 @@
         <section id="route-score" class="route" tabindex="-1" hidden>
           <div class="route-head">
             <h2 class="route-h">Resume Score</h2>
-            <p class="route-sub">A quick on-device check against common recruiter and ATS expectations. Updates live as you edit — nothing leaves your device.</p>
+            <p class="route-sub">A quick on-device check against common recruiter and ATS expectations. Updates live as you edit. Nothing leaves your device.</p>
           </div>
           <div id="scoreHost" class="route-body"></div>
         </section>
         <section id="route-match" class="route" tabindex="-1" hidden>
           <div class="route-head">
             <h2 class="route-h">Job Match</h2>
-            <p class="route-sub">Paste a job description and compare its key terms against your whole resume — all on this device.</p>
+            <p class="route-sub">Paste a job description and compare its key terms against your whole resume, all on this device.</p>
           </div>
           <div id="matchHost" class="route-body"></div>
         </section>
       </main>
 
       <footer>
-    LocalResume — a private resume builder that runs on your device. Your data stays with you.<br>
+    LocalResume is a private resume builder that runs on your device. Your data stays with you.<br>
     An Eden Apps app · <a href="https://edenapps.app" target="_blank" rel="noopener">edenapps.app</a><br>
     Built with <a href="https://pdf-lib.js.org" target="_blank" rel="noopener">pdf-lib</a>, bundled locally.<br>
     <a href="privacy.html">Privacy</a> · <a href="https://edenapps.app/terms.html" target="_blank" rel="noopener">Terms</a> · <a href="support.html">Help</a><br>
@@ -135,7 +135,7 @@
 
   <!-- pdf-lib is lazy-loaded on first PDF export (see ensurePdfLib in app.js) -->
   <script src="lib/jszip.min.js"></script>
-  <script src="billing.js?v=9b807bf9f1"></script>
-  <script src="app.js?v=9b807bf9f1"></script>
+  <script src="billing.js?v=dfb3689268"></script>
+  <script src="app.js?v=dfb3689268"></script>
 </body>
 </html>
