@@ -2373,8 +2373,8 @@ async function doExport() {
 
     const bytes = await pdf.save();
     const safeName = (state.personal.name || "resume").replace(/[^\w.-]+/g, "-").slice(0, 40);
-    await downloadPdfBytes(bytes, `${safeName}-resume.pdf`);
-    status(msgHost, "PDF ready. Saved to your downloads.", "ok");
+    if (!(await downloadPdfBytes(bytes, `${safeName}-resume.pdf`))) return; // share sheet closed: say nothing
+    status(msgHost, IS_NATIVE ? "PDF ready." : "PDF ready. Saved to your downloads.", "ok");
   } catch (e) {
     status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
@@ -2401,11 +2401,92 @@ async function downloadPdfBytes(bytes, filename) {
     const { Filesystem } = window.Capacitor.Plugins;
     const { Share } = window.Capacitor.Plugins;
     const base64 = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.readAsDataURL(blob); });
-    const { uri } = await Filesystem.writeFile({ path: filename, data: base64, directory: "CACHE" });
-    await Share.share({ title: filename, files: [uri] });
+    // The share sheet copies the bytes into whatever destination is chosen, so
+    // once it has settled (shared, dismissed, or failed) this cache copy has no
+    // further job, and removing it keeps a finished resume or cover letter from
+    // sitting on the device afterwards. The count marks the name as in use
+    // first: a second tap on the same export writes the same name, and iOS
+    // refuses that second share while the first sheet is still open, so the
+    // refusal must not delete the file the open sheet is holding. Cleanup never
+    // throws and is not awaited, so this resolves or rejects exactly as before.
+    shareCopiesInFlight.set(filename, (shareCopiesInFlight.get(filename) || 0) + 1);
+    try {
+      const { uri } = await Filesystem.writeFile({ path: filename, data: base64, directory: "CACHE" });
+      await Share.share({ title: filename, files: [uri] });
+    } catch (e) {
+      // Closing the sheet without choosing anywhere makes the plugin reject with
+      // exactly "Share canceled". That is neither a failure nor a save, so it
+      // resolves false and the caller shows nothing. Every other rejection (a
+      // write error, any other share error) still throws as before. The finally
+      // below still runs on this path, so the cache copy is removed either way.
+      if (e && e.message === "Share canceled") return false;
+      throw e;
+    } finally {
+      const stillSharing = (shareCopiesInFlight.get(filename) || 1) - 1;
+      if (stillSharing > 0) shareCopiesInFlight.set(filename, stillSharing);
+      else { shareCopiesInFlight.delete(filename); forgetExportCopy(Filesystem, filename); }
+    }
   } else {
     const a = el("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
     document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  // true = handed off (shared on iPhone, downloaded on the web). Only a
+  // dismissed iPhone share sheet returns false, above.
+  return true;
+}
+
+// ── Export copy cleanup (native only) ───────────────────────────────────────
+// downloadPdfBytes() is the one place this app writes into the CACHE directory,
+// and every name it writes is built by an export in this file:
+//   <base>-resume.pdf, <base>-resume.docx, <base>-resume.txt, <base>-cover-letter.pdf
+// where <base> is the entered name reduced to [A-Za-z0-9_.-] and cut to 40
+// characters (or the "resume" / "cover-letter" fallback). This pattern matches
+// exactly those names and nothing else.
+const EXPORT_CACHE_NAME_RE = /^[\w.-]{1,40}-(resume\.(pdf|docx|txt)|cover-letter\.pdf)$/;
+
+// filename -> how many downloadPdfBytes() calls are still using that cache copy.
+// Only the last one to settle deletes it, and the launch sweep skips it.
+const shareCopiesInFlight = new Map();
+
+// Fire-and-forget delete of one export copy. Silent by design: a delete that
+// does not land is not a failed export, so it never reaches the person, and
+// the next launch's sweep picks the file up.
+function forgetExportCopy(Filesystem, filename) {
+  try {
+    const pending = Filesystem.deleteFile({ path: filename, directory: "CACHE" });
+    if (pending && typeof pending.catch === "function") pending.catch(() => {});
+  } catch (e) {}
+}
+
+// A copy can still outlive its share (iOS ends the app while the sheet is open,
+// or a delete does not land), so once per launch this clears those leftovers.
+// Deliberately NOT a clear of the cache directory: only plain files at its top
+// level whose names match EXPORT_CACHE_NAME_RE, and never one an export in
+// progress is still sharing. The web engine's own caches, subdirectories and
+// every other file are left alone. Best effort from end to end.
+async function sweepExportCache() {
+  if (!IS_NATIVE) return; // the web path never writes such a file
+  // Only a fresh launch sweeps. iOS can restart the web view's own process (it
+  // reloads the page) while the app, and any share sheet or Files picker it has
+  // open, stays alive; that sheet may still need its file, and what this page knew
+  // about it is gone. A copy skipped here is cleared at the next launch.
+  try {
+    const nav = performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null;
+    if (nav ? nav.type !== "navigate" : (performance.navigation && performance.navigation.type !== 0)) return;
+  } catch (e) {}
+  const Filesystem = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
+  if (!Filesystem || typeof Filesystem.readdir !== "function") return;
+  let listing;
+  try { listing = await Filesystem.readdir({ path: "", directory: "CACHE" }); }
+  catch (e) { return; }
+  const entries = (listing && Array.isArray(listing.files)) ? listing.files : [];
+  for (const entry of entries) {
+    // Capacitor 7 returns {name, type, ...}; the bare-string form is what older
+    // versions of the plugin returned, kept so a shape change cannot throw.
+    const name = typeof entry === "string" ? entry : String((entry && entry.name) || "");
+    const isDir = typeof entry !== "string" && !!entry && entry.type === "directory";
+    if (isDir || !EXPORT_CACHE_NAME_RE.test(name) || shareCopiesInFlight.has(name)) continue;
+    try { await Filesystem.deleteFile({ path: name, directory: "CACHE" }); } catch (e) {}
   }
 }
 
@@ -2481,8 +2562,8 @@ async function doExportPlainText() {
     const text = buildResumePlainText(state);
     // Normalize to CRLF so Windows Notepad and older editors render line breaks.
     const bytes = new TextEncoder().encode(text.replace(/\r?\n/g, "\r\n"));
-    await downloadPdfBytes(bytes, `${resumeFileBase()}-resume.txt`);
-    status(msgHost, "Plain-text resume saved to your downloads.", "ok");
+    if (!(await downloadPdfBytes(bytes, `${resumeFileBase()}-resume.txt`))) return; // share sheet closed: say nothing
+    status(msgHost, IS_NATIVE ? "Plain-text resume ready." : "Plain-text resume saved to your downloads.", "ok");
   } catch (e) {
     status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
@@ -2690,8 +2771,8 @@ async function doExportDocx(ev) {
     const safeName = (state.personal.name || "resume").replace(/[^\w.-]+/g, "-").slice(0, 40);
     // Same octet-stream download path the PDF export uses (Safari won't hijack
     // an octet-stream blob), with the .docx extension driving the file type.
-    await downloadPdfBytes(bytes, `${safeName}-resume.docx`);
-    status(msgHost, "Word (.docx) ready. Saved to your downloads.", "ok");
+    if (!(await downloadPdfBytes(bytes, `${safeName}-resume.docx`))) return; // share sheet closed: say nothing
+    status(msgHost, IS_NATIVE ? "Word (.docx) ready." : "Word (.docx) ready. Saved to your downloads.", "ok");
   } catch (e) {
     status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
@@ -3861,8 +3942,8 @@ async function doExportCoverLetter() {
 
     const bytes = await pdf.save();
     const safeName = (state.personal.name || "cover-letter").replace(/[^\w.-]+/g, "-").slice(0, 40);
-    await downloadPdfBytes(bytes, `${safeName}-cover-letter.pdf`);
-    status(msgHost, "Cover letter PDF ready. Saved to your downloads.", "ok");
+    if (!(await downloadPdfBytes(bytes, `${safeName}-cover-letter.pdf`))) return; // share sheet closed: say nothing
+    status(msgHost, IS_NATIVE ? "PDF ready." : "Cover letter PDF ready. Saved to your downloads.", "ok");
   } catch (e) {
     status(msgHost, "Couldn't export that. Try again. Your data on this device is unaffected.", "err");
   }
@@ -4078,6 +4159,16 @@ $("#logo").addEventListener("keydown", (e) => {
 })();
 
 try { buildEditor(); } catch (e) {}
+// Clear any export copy a previous run left in the cache (see sweepExportCache).
+// Native only: on the web nothing is scheduled at all. Queued behind load and
+// started in its own task, so it never sits between someone and the editor.
+try {
+  if (IS_NATIVE) {
+    const startExportSweep = () => { setTimeout(() => { try { sweepExportCache().catch(() => {}); } catch (e) {} }, 0); };
+    if (document.readyState === "complete") startExportSweep();
+    else window.addEventListener("load", startExportSweep, { once: true });
+  }
+} catch (e) {}
 // Boot entitlement check — ONLY when this browser might already own Pro
 // (Billing.shouldCheckAtBoot() is false for a brand-new visitor, so fresh
 // loads still make ZERO billing network calls). This recovers the "paid then
